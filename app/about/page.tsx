@@ -1,7 +1,7 @@
 "use client";
 import {
   ArrowRight, Activity, Zap, ShieldCheck, Users, Dumbbell,
-  Target, CheckCircle2, Star, Code2, TrendingUp, HeartPulse,
+  Target, CheckCircle2, Star, Code2, TrendingUp, Heart,
   Lightbulb, BookOpen, Brain, Award, Globe, Layers
 } from "lucide-react";
 import Link from "next/link";
@@ -378,7 +378,7 @@ export default function AboutPage() {
     { icon: <TrendingUp size={18} color="#7b6fff" />, label: "Real-Life Transformation Journey" },
     { icon: <Brain size={18} color="#00c8ff" />, label: "Science-Based Guidance" },
     { icon: <Zap size={18} color="#7b6fff" />, label: "20+ Free AI Tools" },
-    { icon: <HeartPulse size={18} color="#00c8ff" />, label: "Practical Home-Food Solutions" },
+    { icon: <Heart size={18} color="#00c8ff" />, label: "Practical Home-Food Solutions" },
     { icon: <ShieldCheck size={18} color="#7b6fff" />, label: "Real Support, No Bro-Science" },
   ];
 
@@ -771,7 +771,7 @@ export default function AboutPage() {
                   {[
                     { label: "Science-based guidance", icon: <Brain size={16} color="#7b6fff" /> },
                     { label: "No bro-science — ever", icon: <ShieldCheck size={16} color="#00c8ff" /> },
-                    { label: "Practical nutrition", icon: <HeartPulse size={16} color="#7b6fff" /> },
+                    { label: "Practical nutrition", icon: <Heart size={16} color="#7b6fff" /> },
                     { label: "Home-food solutions", icon: <Lightbulb size={16} color="#00c8ff" /> },
                     { label: "Real support & accountability", icon: <Users size={16} color="#7b6fff" /> },
                   ].map(item => (

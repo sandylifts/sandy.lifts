@@ -10,35 +10,6 @@ const socialLinks = [
 export function Footer() {
   return (
     <footer style={{ background: "#05050B", borderTop: "1px solid rgba(195,252,254,0.06)", padding: "4rem 1.5rem 2rem" }}>
-      <style>{`
-        .footer-link {
-          display: block;
-          color: #6B6F9A;
-          font-size: 0.85rem;
-          margin-bottom: 0.5rem;
-          text-decoration: none;
-          transition: color 0.2s;
-        }
-        .footer-link:hover { color: #9A9EC4; }
-        .footer-social {
-          width: 36px;
-          height: 36px;
-          border-radius: 8px;
-          background: rgba(34,34,53,0.8);
-          border: 1px solid rgba(195,252,254,0.1);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #6B6F9A;
-          transition: all 0.2s;
-          text-decoration: none;
-          flex-shrink: 0;
-        }
-        .footer-social:hover {
-          border-color: rgba(195,252,254,0.35);
-          color: #C3FCFE;
-        }
-      `}</style>
 
       <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "3rem", marginBottom: "3rem" }}>
