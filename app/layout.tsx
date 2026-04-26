@@ -35,10 +35,13 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Sandy.Lifts" }],
   creator: "Sandy.Lifts",
+  alternates: {
+    canonical: "https://sandy-lifts.vercel.app",
+  },
   openGraph: {
     type: "website",
     locale: "en_GB",
-    url: "https://sandy.lifts",
+    url: "https://sandy-lifts.vercel.app",
     siteName: "Sandy.Lifts",
     title: "Sandy.Lifts — Your Premium Fitness Hub",
     description:
@@ -63,9 +66,15 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body className="bg-ink text-text-primary antialiased" style={{ backgroundColor: "#05050B", color: "#D8DBFC", fontFamily: "Outfit, Inter, system-ui, sans-serif" }}>
+      <body className="bg-ink text-text-primary antialiased">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[#C3FCFE] focus:text-[#05050B] focus:font-bold"
+        >
+          Skip to content
+        </a>
         <Navigation />
-        <main>{children}</main>
+        <main id="main-content">{children}</main>
         <Footer />
       </body>
     </html>

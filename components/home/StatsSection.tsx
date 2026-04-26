@@ -7,7 +7,7 @@ export function StatsSection() {
   ];
 
   return (
-    <section style={{ padding: "3rem 1.5rem", background: "#05050B" }}>
+    <section id="stats-section" style={{ padding: "3rem 1.5rem", background: "#05050B" }}>
       <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1px", background: "rgba(195,252,254,0.06)", borderRadius: "20px", overflow: "hidden", border: "1px solid rgba(195,252,254,0.08)" }}>
           {stats.map((stat, i) => (

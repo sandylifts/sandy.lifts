@@ -3,7 +3,7 @@ import { HeroSection } from "@/components/home/HeroSection";
 import { FeaturesGrid } from "@/components/home/FeaturesGrid";
 import { ToolsPreview } from "@/components/home/ToolsPreview";
 import { AIPreview } from "@/components/home/AIPreview";
-import { StatsSection } from "@/components/home/StatsSection";
+import { WhySection } from "@/components/features/WhySection";
 import { InsuranceWidget } from "@/components/insurance/InsuranceWidget";
 import { CommunityPreview } from "@/components/home/CommunityPreview";
 import { TrustEcosystem } from "@/components/home/TrustEcosystem";
@@ -19,7 +19,7 @@ export default function HomePage() {
   return (
     <div>
       <HeroSection />
-      <StatsSection />
+      <WhySection />
       <MythTicker />
       <EnergyCheckIn />
       <TrustEcosystem />

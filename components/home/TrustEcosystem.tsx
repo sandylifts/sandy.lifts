@@ -176,14 +176,7 @@ function LiveReviews() {
       <div style={{ fontSize: "0.68rem", color: "#22D3A5", letterSpacing: "0.12em", fontWeight: 700, marginBottom: "0.875rem" }}>
         💬 VERIFIED CLIENT REVIEWS
       </div>
-      <style>{`
-        @keyframes marqueeScroll {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-        .te-marquee { animation: marqueeScroll 35s linear infinite; }
-        .te-marquee:hover { animation-play-state: paused; }
-      `}</style>
+      {/* Classes .te-marquee and @keyframes marqueeScroll are defined in globals.css */}
       <div style={{ display: "flex", overflow: "hidden", maskImage: "linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)", WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)" }}>
         <div className="te-marquee" style={{ display: "flex", gap: "0.875rem", width: "max-content" }}>
           {doubled.map((r, i) => (
