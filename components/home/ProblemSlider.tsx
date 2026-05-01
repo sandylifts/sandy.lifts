@@ -3,12 +3,11 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const PROBLEMS = [
-  "100 videos dekhte ho… but still don't know what to follow",
-  "Diet plan milta hai… but real life mein follow nahi hota",
-  "Workout kar raha hoon… but result nahi aa raha",
-  "Diet follow karta hoon… but confuse ho jata hoon",
   "Har trainer kuch alag bolta hai",
-  "Consistency maintain nahi ho pa rahi"
+  "Diet follow hoti nahi consistently",
+  "Workout plan 3 din baad change ho jata hai",
+  "Result slow hone se motivation gir jata hai",
+  "YouTube se plan uthaya… kaam nahi kiya"
 ];
 
 export function ProblemSlider() {
