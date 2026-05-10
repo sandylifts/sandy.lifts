@@ -1,361 +1,504 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { Activity, Target, Star, Flame, Calculator, ArrowRight, Search, Zap, X, BrainCircuit, HeartPulse } from "lucide-react";
 
-/* ─── Data ────────────────────────────────────────────── */
-const groups = [
+/* ─── Types ─────────────────────────────────────────────── */
+interface StudyTag { label: string; type: "primary" | "compared" | "rejected"; }
+interface Study { name: string; detail: string; tag: StudyTag; }
+interface StudyPanel { why: string; studies: Study[]; bottomLine: string; }
+interface Tool {
+  id: string;
+  icon: string;
+  name: string;
+  desc: string;
+  slug?: string;
+  live: boolean;
+  studyPanel?: StudyPanel;
+}
+
+/* ─── Data ──────────────────────────────────────────────── */
+const TOOLS: Tool[] = [
   {
-    id: "calculators",
-    label: "Core Diagnostics",
-    icon: Calculator,
-    color: "#00D4FF",
-    desc: "Science-backed calculators to determine your exact metabolic baseline.",
-    tools: [
-      { name: "Ultimate Macro & TDEE Engine", slug: "macro-engine", desc: "Find your exact energy expenditure and optimal macro split based on the validated Mifflin-St Jeor equation.", badge: "Essential" },
-      { name: "Navy Body Fat Estimator", slug: "body-fat-estimator", desc: "Calculate your current body fat percentage and lean mass using the US Navy tape measure method.", badge: "Precision" },
-    ],
+    id: "calories",
+    icon: "🔥",
+    name: "Maintenance Calories",
+    desc: "Find your daily calorie baseline",
+    slug: "/tools/macro-calculator",
+    live: true,
+    studyPanel: {
+      why: "We evaluated 4 formulas for maintenance calories. Mifflin-St Jeor was selected because it demonstrated the highest accuracy in the largest modern validation study — outperforming Harris-Benedict by 5% across diverse populations.",
+      studies: [
+        { name: "Mifflin MD et al.", detail: "1990 · 498 subjects · American Journal of Clinical Nutrition", tag: { label: "PRIMARY", type: "primary" } },
+        { name: "Frankenfield D et al.", detail: "2005 · 201 subjects · Journal of the American Dietetic Association", tag: { label: "COMPARED", type: "compared" } },
+        { name: "Harris JA, Benedict FG", detail: "1919 · 239 subjects · Carnegie Institution", tag: { label: "COMPARED", type: "compared" } },
+      ],
+      bottomLine: "Mifflin-St Jeor predicted resting metabolic rate within 10% for 82% of subjects — more than any other tested equation.",
+    },
   },
   {
-    id: "smart",
-    label: "Intelligence & Quizzes",
-    icon: BrainCircuit,
-    color: "#A855F7",
-    desc: "Insightful tools designed to map your unique physiological profile.",
-    tools: [
-      { name: "Body Type Matrix", slug: "body-type-matrix", desc: "Discover your somatotype (Ecto, Meso, Endomorph) and unlock your ideal training and diet style.", badge: "Insight" },
-      { name: "Metabolic Health Analyzer", slug: "metabolism-analyzer", desc: "A smart diagnostic questionnaire to assess your metabolic speed and spot potential adaptation issues.", badge: "Diagnostic" },
-    ],
+    id: "bodyfat",
+    icon: "🧬",
+    name: "Body Fat %",
+    desc: "Navy Method — most accessible estimate",
+    live: false,
+    studyPanel: {
+      why: "The US Navy circumference method was chosen for its accessibility and clinically validated accuracy — no DEXA required. It outperforms BMI-based estimates in lean populations.",
+      studies: [
+        { name: "Hodgdon JA, Beckett MB", detail: "1984 · 526 subjects · Naval Health Research Center", tag: { label: "PRIMARY", type: "primary" } },
+        { name: "Deurenberg P et al.", detail: "1991 · 1229 subjects · British Journal of Nutrition", tag: { label: "COMPARED", type: "compared" } },
+      ],
+      bottomLine: "Navy Method predicted body fat within 3.5% of hydrostatic weighing in 91% of subjects tested.",
+    },
   },
   {
-    id: "planning",
-    label: "Strategy & Protocols",
-    icon: Target,
-    color: "#F43F5E",
-    desc: "Actionable frameworks to execute your fitness journey flawlessly.",
-    tools: [
-      { name: "Cheat Meal Protocol", slug: "cheat-meal-protocol", desc: "Input your cheat meal to calculate macro spillover and generate a compensatory cardio or diet protocol.", badge: "Popular" },
-      { name: "12-Week Roadmap Generator", slug: "roadmap-generator", desc: "Generate a step-by-step macro and weight trajectory for a complete 90-day physical transformation.", badge: "Premium" },
-    ],
+    id: "protein",
+    icon: "💪",
+    name: "Protein Target",
+    desc: "Evidence-based daily protein goal",
+    live: false,
+    studyPanel: {
+      why: "Morton et al. 2018 is the largest systematic review on protein and muscle growth to date — covering 1,800+ subjects. It settled the decades-long debate on optimal intake.",
+      studies: [
+        { name: "Morton RW et al.", detail: "2018 · 1863 subjects · British Journal of Sports Medicine", tag: { label: "PRIMARY", type: "primary" } },
+        { name: "Phillips SM, Van Loon LJ", detail: "2011 · Meta-analysis · Journal of Sports Sciences", tag: { label: "COMPARED", type: "compared" } },
+      ],
+      bottomLine: "0.72g/lb (1.62g/kg) maximised muscle protein synthesis with no added benefit observed beyond this threshold.",
+    },
+  },
+  {
+    id: "tdee",
+    icon: "⚡",
+    name: "TDEE Calculator",
+    desc: "Total daily energy with activity",
+    live: false,
+    studyPanel: {
+      why: "TDEE multipliers are drawn from multiple activity-validated studies. Rather than fixed multipliers, we weight-average across cohort data to reduce systematic overestimation.",
+      studies: [
+        { name: "Ainsworth BE et al.", detail: "2011 · Compendium of Physical Activities Update · Medicine & Science in Sports", tag: { label: "PRIMARY", type: "primary" } },
+        { name: "Black AE et al.", detail: "1996 · 574 subjects · European Journal of Clinical Nutrition", tag: { label: "COMPARED", type: "compared" } },
+      ],
+      bottomLine: "Activity-adjusted multipliers reduce overestimation error by ~12% versus standard fixed-coefficient models.",
+    },
   },
 ];
 
-const filters = [
-  { id: "all", label: "All Tools" },
-  { id: "calculators", label: "Diagnostics" },
-  { id: "smart", label: "Intelligence" },
-  { id: "planning", label: "Protocols" },
+const HERO_CARDS = [
+  { icon: "🔥", name: "Maintenance Calories", desc: "Mifflin-St Jeor · 1990", style: { top: "8%", left: "2%", rotate: "-2deg", animDuration: "4s" } },
+  { icon: "🧬", name: "Body Fat %", desc: "Navy Method · HODGDON 1984", style: { top: "5%", right: "0%", rotate: "3deg", animDuration: "5.5s" } },
+  { icon: "💪", name: "Protein Intake", desc: "Morton et al. · 2018", style: { bottom: "18%", left: "0%", rotate: "-3deg", animDuration: "3.8s" } },
+  { icon: "⚡", name: "TDEE Calculator", desc: "Activity-adjusted · Multi-study", style: { bottom: "10%", right: "4%", rotate: "1.5deg", animDuration: "6s" } },
 ];
 
-export default function ToolsHubPage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeFilter, setActiveFilter] = useState("all");
+const TAG_STYLES: Record<string, string> = {
+  primary: "bg-[rgba(195,252,254,0.12)] text-[#C3FCFE] border border-[rgba(195,252,254,0.3)]",
+  compared: "bg-[rgba(255,255,255,0.06)] text-[#9A9EC4] border border-[rgba(255,255,255,0.12)]",
+  rejected: "bg-[rgba(255,100,100,0.1)] text-[#ff6b6b] border border-[rgba(255,100,100,0.25)]",
+};
 
-  // Filter logic
-  const filteredGroups = useMemo(() => {
-    let result = groups;
+/* ─── Study Panel Component ─────────────────────────────── */
+function StudyPanelContent({ panel }: { panel: StudyPanel }) {
+  return (
+    <div className="mt-4 pt-4 border-t border-[rgba(195,252,254,0.08)]">
+      {/* WHY WE USE THIS */}
+      <p className="text-[10px] font-bold tracking-[2px] uppercase text-[#C3FCFE] mb-2">Why We Use This Method</p>
+      <p className="text-[13px] text-[#9A9EC4] leading-[1.7] mb-4">{panel.why}</p>
 
-    // Filter by Category Pill
-    if (activeFilter !== "all") {
-      result = result.filter((g) => g.id === activeFilter);
-    }
+      {/* THE RESEARCH */}
+      <p className="text-[10px] font-bold tracking-[2px] uppercase text-[#C3FCFE] mb-3">The Research</p>
+      <div className="flex flex-col gap-3 mb-4">
+        {panel.studies.map((study, i) => (
+          <div key={i} className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[13px] font-semibold text-[#D8DBFC]">{study.name}</p>
+              <p className="text-[11px] text-[#6B6F9A] mt-0.5">{study.detail}</p>
+            </div>
+            <span className={`shrink-0 text-[9px] font-bold tracking-[1px] uppercase px-2 py-1 rounded-full ${TAG_STYLES[study.tag.type]}`}>
+              {study.tag.label}
+            </span>
+          </div>
+        ))}
+      </div>
 
-    // Filter by Search Query
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      result = result.map((group) => {
-        const filteredTools = group.tools.filter(
-          (t) => t.name.toLowerCase().includes(q) || t.desc.toLowerCase().includes(q)
-        );
-        return { ...group, tools: filteredTools };
-      }).filter((group) => group.tools.length > 0);
-    }
+      {/* BOTTOM LINE */}
+      <p className="text-[10px] font-bold tracking-[2px] uppercase text-[#C3FCFE] mb-2">Bottom Line</p>
+      <p className="text-[13px] italic text-[#9A9EC4] leading-[1.7]">{panel.bottomLine}</p>
+    </div>
+  );
+}
 
-    return result;
-  }, [searchQuery, activeFilter]);
+/* ─── Tool Card Component ───────────────────────────────── */
+function ToolCard({ tool }: { tool: Tool }) {
+  const [open, setOpen] = useState(false);
 
   return (
-    <main className="min-h-screen bg-[#08050F] text-white font-sans selection:bg-[#A855F7] selection:bg-opacity-30 pb-24">
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        .font-display { font-family: var(--font-outfit), sans-serif; }
-        .font-body { font-family: var(--font-inter), sans-serif; }
-        
-        @keyframes aurora1 {
-          0% { transform: translate(0%, 0%) scale(1); }
-          33% { transform: translate(10%, -10%) scale(1.1); }
-          66% { transform: translate(-10%, 10%) scale(0.9); }
-          100% { transform: translate(0%, 0%) scale(1); }
-        }
-        @keyframes aurora2 {
-          0% { transform: translate(0%, 0%) scale(1); }
-          33% { transform: translate(-15%, 15%) scale(1.2); }
-          66% { transform: translate(15%, -15%) scale(0.8); }
-          100% { transform: translate(0%, 0%) scale(1); }
-        }
-        .animate-aurora-1 { animation: aurora1 20s ease-in-out infinite; }
-        .animate-aurora-2 { animation: aurora2 25s ease-in-out infinite reverse; }
-        
-        .glass-card {
-          background: rgba(255, 255, 255, 0.02);
-          backdrop-filter: blur(16px);
-          border: 1px solid rgba(255, 255, 255, 0.06);
-          box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-        }
-        
-        @keyframes marquee {
-          0% { transform: translateX(0%); }
-          100% { transform: translateX(-50%); }
-        }
-        .animate-marquee { display: inline-flex; animation: marquee 18s linear infinite; }
+    <motion.div
+      layout
+      className={`relative flex flex-col rounded-xl border transition-all duration-300 overflow-hidden
+        ${open
+          ? "bg-[#0D1117] border-[rgba(195,252,254,0.25)] shadow-[0_0_30px_rgba(195,252,254,0.08)]"
+          : "bg-[#0D0D12] border-[rgba(255,255,255,0.07)] hover:border-[rgba(195,252,254,0.2)] hover:-translate-y-1"
+        }`}
+    >
+      {/* Card top glow on hover */}
+      <div className="absolute inset-0 pointer-events-none opacity-0 hover:opacity-100 transition-opacity duration-500"
+        style={{ background: "radial-gradient(circle at 50% 0%, rgba(195,252,254,0.04) 0%, transparent 60%)" }} />
 
-        @keyframes pulseDot {
-          0%, 100% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.3); opacity: 0.8; }
-        }
-        .animate-pulse-dot { animation: pulseDot 1.5s infinite; }
-
-        @keyframes blinkRealMotion {
-          0% { opacity: 1; transform: scale(1); box-shadow: 0 0 10px rgba(168,85,247,0.5); }
-          5% { opacity: 0.4; transform: scale(0.98); box-shadow: none; }
-          10% { opacity: 1; transform: scale(1); box-shadow: 0 0 20px rgba(168,85,247,0.8); }
-          15% { opacity: 0.2; }
-          20% { opacity: 1; }
-          100% { opacity: 1; box-shadow: 0 0 10px rgba(168,85,247,0.5); }
-        }
-        .animate-blink-real { animation: blinkRealMotion 3s infinite; }
-        `
-      }} />
-
-      {/* ─── AURORA BACKGROUND ─── */}
-      <div className="fixed top-0 left-0 w-full h-[600px] z-[0] pointer-events-none overflow-hidden opacity-60">
-        <div className="absolute top-[-10%] left-[20%] w-[500px] h-[500px] rounded-full bg-[#A855F7]/20 blur-[120px] animate-aurora-1 mix-blend-screen" />
-        <div className="absolute top-[10%] right-[10%] w-[600px] h-[600px] rounded-full bg-[#00D4FF]/15 blur-[140px] animate-aurora-2 mix-blend-screen" />
-        <div className="absolute inset-0" style={{ backgroundImage: "radial-gradient(circle at 50% 100%, transparent 0%, #08050F 80%)" }} />
-      </div>
-
-      <div className="absolute top-[80px] left-0 right-0 z-[100] w-full h-[30px] lg:h-[36px] bg-gradient-to-r from-[#05050B] via-[#1a0b2e] to-[#05050B] border-y border-[#A855F7]/20 shadow-[0_4px_30px_rgba(168,85,247,0.1)] flex items-center overflow-hidden">
-        <div className="absolute left-0 top-0 bottom-0 w-[60px] bg-gradient-to-r from-[#0d0018] to-transparent z-10 pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-[60px] bg-gradient-to-l from-[#0d0018] to-transparent z-10 pointer-events-none" />
-
-        <div className="animate-marquee whitespace-nowrap flex items-center font-body text-[11px] font-medium text-[#c084fc] tracking-[0.02em]">
-          {[...Array(2)].map((_, i) => (
-            <div key={i} className="flex items-center">
-              {["Need to calculate macros?", "Wondering about body fat?", "Want to track progress?", "Confused about cheat meals?", "Need a workout split?", "Want to optimise recovery?"].map((prob, idx) => (
-                <div key={idx} className="flex items-center mr-[32px]">
-                  <div className="w-[6px] h-[6px] rounded-full bg-[#c084fc] mr-2 animate-pulse-dot" />
-                  {prob}
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="relative z-[10] max-w-[1280px] mx-auto px-5 lg:px-10 pt-32 lg:pt-40">
-
-        {/* ─── HERO SECTION ─── */}
-        <div className="flex flex-col items-center text-center mb-20 lg:mb-24">
-
-          {/* Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="mb-8"
-          >
-            <div className="inline-flex items-center gap-2 border border-[#A855F7]/40 bg-[#A855F7]/10 px-[16px] py-[8px] rounded-full backdrop-blur-md animate-blink-real">
-              <BrainCircuit size={14} className="text-[#c084fc]" />
-              <span className="font-sans text-[11px] font-bold tracking-[0.1em] uppercase text-[#c084fc]">
-                The Ultimate Toolkit
-              </span>
-            </div>
-          </motion.div>
-
-          {/* Heading */}
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
-            className="font-display font-bold text-[48px] md:text-[64px] lg:text-[76px] leading-[1.05] tracking-[-0.03em] max-w-[900px] text-white mb-6"
-          >
-            Your Body Runs on Data.<br />
-            <span className="bg-[linear-gradient(to_right,#A855F7,#00D4FF)] bg-clip-text text-transparent">Now You Do Too.</span>
-          </motion.h1>
-
-          {/* Subline */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
-            className="font-body text-[16px] lg:text-[18px] text-[#AAB3C5] font-medium max-w-[640px] leading-[1.65] mb-8"
-          >
-            Evidence-based tools designed to simplify your nutrition. No bro-science, no fake promises—just a logical path to your best physique.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.25, ease: "easeOut" }}
-            className="flex items-center gap-2 mb-12 bg-white/[0.03] border border-white/10 px-5 py-2.5 rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.2)]"
-          >
-            <span className="text-[16px]">👉</span>
-            <span className="font-body text-[14px] font-medium text-white/90">
-              Used by people who are done guessing.
-            </span>
-          </motion.div>
-
-          {/* Search Bar Spotlight */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
-            className="w-full max-w-[720px] relative group"
-          >
-            {/* Glow behind search */}
-            <div className="absolute -inset-[2px] rounded-[24px] bg-gradient-to-r from-[#A855F7]/40 to-[#00D4FF]/40 blur-xl opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-500" />
-
-            <div className="relative flex items-center w-full h-[64px] lg:h-[72px] glass-card rounded-[20px] overflow-hidden transition-all duration-300 border-white/10 group-focus-within:border-[#A855F7]/50 group-focus-within:bg-white/[0.04]">
-              <div className="pl-6 pr-4 flex items-center justify-center">
-                <Search size={24} className="text-[#AAB3C5] group-focus-within:text-[#00D4FF] transition-colors" />
-              </div>
-              <input
-                type="text"
-                placeholder="Find a tool (e.g., 'BMR', 'Macro', 'Quiz')..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-full bg-transparent border-none outline-none text-[16px] lg:text-[18px] font-medium text-white placeholder:text-[#6B6F9A] font-body pr-6"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="pr-6 pl-2 text-[#AAB3C5] hover:text-white transition-colors"
-                >
-                  <X size={20} />
-                </button>
-              )}
-            </div>
-          </motion.div>
-
-          {/* Quick Filter Pills */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
-            className="flex flex-wrap items-center justify-center gap-3 mt-8"
-          >
-            {filters.map((f) => (
-              <button
-                key={f.id}
-                onClick={() => { setActiveFilter(f.id); setSearchQuery(""); }}
-                className={`px-5 py-2.5 rounded-full font-body text-[14px] font-semibold transition-all duration-300 border ${activeFilter === f.id
-                    ? "bg-[#A855F7]/20 border-[#A855F7]/50 text-white shadow-[0_0_15px_rgba(168,85,247,0.2)]"
-                    : "bg-white/[0.03] border-white/10 text-[#9A9EC4] hover:bg-white/[0.08] hover:text-white"
-                  }`}
-              >
-                {f.label}
-              </button>
-            ))}
-          </motion.div>
-        </div>
-
-        {/* ─── TOOLS GRID ─── */}
-        <div className="w-full">
-          {filteredGroups.length === 0 ? (
-            <div className="text-center py-20">
-              <div className="w-[64px] h-[64px] mx-auto rounded-full bg-white/[0.03] border border-white/10 flex items-center justify-center mb-4">
-                <Search size={28} className="text-[#6B6F9A]" />
-              </div>
-              <h3 className="font-display text-[24px] font-bold text-white mb-2">No tools found</h3>
-              <p className="text-[#9A9EC4]">Try adjusting your search query to find what you're looking for.</p>
-              <button
-                onClick={() => { setSearchQuery(""); setActiveFilter("all"); }}
-                className="mt-6 text-[#00D4FF] font-semibold hover:underline"
-              >
-                Clear Search
-              </button>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-16 lg:gap-24">
-              <AnimatePresence>
-                {filteredGroups.map((group) => (
-                  <motion.section
-                    key={group.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-50px" }}
-                    transition={{ duration: 0.5 }}
-                    className="scroll-mt-[120px]"
-                  >
-                    {/* Category Header */}
-                    <div className="flex items-center gap-4 mb-8">
-                      <div className="w-[52px] h-[52px] rounded-2xl flex items-center justify-center shrink-0 border relative overflow-hidden group-hover:scale-110 transition-transform"
-                        style={{
-                          background: `radial-gradient(circle at top left, ${group.color}30, transparent)`,
-                          borderColor: `${group.color}40`
-                        }}
-                      >
-                        <group.icon size={24} color={group.color} />
-                      </div>
-                      <div>
-                        <h2 className="font-display text-[24px] lg:text-[28px] font-bold text-white mb-1 tracking-tight">
-                          {group.label}
-                        </h2>
-                        <p className="font-body text-[#9A9EC4] text-[14px] lg:text-[15px]">{group.desc}</p>
-                      </div>
-                    </div>
-
-                    {/* Divider */}
-                    <div className="w-full h-[1px] mb-8" style={{ background: `linear-gradient(90deg, ${group.color}40, transparent)` }} />
-
-                    {/* Cards Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-                      {group.tools.map((tool) => (
-                        <Link
-                          href={`/tools/${tool.slug}`}
-                          key={tool.slug}
-                          className="group flex flex-col h-full glass-card rounded-[24px] p-6 hover:bg-white/[0.04] hover:-translate-y-1 transition-all duration-300 relative overflow-hidden"
-                          style={{ borderColor: "rgba(255,255,255,0.08)" }}
-                        >
-                          {/* Hover Glow Effect inside card */}
-                          <div className="absolute top-0 right-0 w-[150px] h-[150px] bg-white opacity-0 group-hover:opacity-[0.03] blur-[40px] rounded-full transition-opacity duration-500 pointer-events-none" />
-                          <div className="absolute bottom-0 left-0 w-[100px] h-[100px] opacity-0 group-hover:opacity-[0.1] blur-[50px] rounded-full transition-opacity duration-500 pointer-events-none" style={{ backgroundColor: group.color }} />
-
-                          <div className="flex justify-between items-start mb-4 relative z-10">
-                            <h3 className="font-display font-bold text-[18px] text-white leading-[1.3] pr-2 group-hover:text-[#00D4FF] transition-colors">
-                              {tool.name}
-                            </h3>
-                            <span className="shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase border"
-                              style={{
-                                color: group.color,
-                                backgroundColor: `${group.color}15`,
-                                borderColor: `${group.color}30`
-                              }}
-                            >
-                              {tool.badge}
-                            </span>
-                          </div>
-
-                          <p className="font-body text-[14px] text-[#AAB3C5] leading-[1.6] mb-6 flex-grow relative z-10">
-                            {tool.desc}
-                          </p>
-
-                          <div className="flex items-center gap-2 text-[13px] font-bold uppercase tracking-wide relative z-10" style={{ color: group.color }}>
-                            Launch Tool
-                            <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  </motion.section>
-                ))}
-              </AnimatePresence>
-            </div>
+      <div className="p-6 flex flex-col flex-1">
+        {/* Top Row */}
+        <div className="flex items-center justify-between mb-5">
+          <div className="w-11 h-11 rounded-full bg-[#141420] border border-[rgba(255,255,255,0.06)] flex items-center justify-center text-2xl">
+            {tool.icon}
+          </div>
+          {tool.studyPanel && (
+            <button
+              onClick={() => setOpen((o) => !o)}
+              aria-label={`${open ? "Close" : "Open"} study panel for ${tool.name}`}
+              className={`w-8 h-8 rounded-full border text-[13px] italic font-serif flex items-center justify-center transition-all duration-200
+                ${open
+                  ? "border-[rgba(195,252,254,0.5)] text-[#C3FCFE] bg-[rgba(195,252,254,0.08)]"
+                  : "border-[rgba(255,255,255,0.12)] text-[#6B6F9A] hover:border-[rgba(195,252,254,0.4)] hover:text-[#C3FCFE]"
+                }`}
+            >
+              i
+            </button>
           )}
         </div>
+
+        {/* Name + Desc */}
+        <p className="text-[18px] font-semibold text-[#F5F7FA] leading-tight mb-1">{tool.name}</p>
+        <p className="text-[13px] text-[#6B6F9A] mb-5 flex-1">{tool.desc}</p>
+
+        {/* Bottom Row */}
+        <div className="flex items-center justify-between mt-auto">
+          {tool.live ? (
+            <span className="text-[10px] font-bold tracking-[1px] uppercase px-3 py-1 rounded-full bg-[rgba(195,252,254,0.08)] text-[#C3FCFE] border border-[rgba(195,252,254,0.25)]">
+              LIVE
+            </span>
+          ) : (
+            <span className="text-[10px] font-bold tracking-[1px] uppercase px-3 py-1 rounded-full bg-[rgba(255,255,255,0.04)] text-[#4A4A75] border border-[rgba(255,255,255,0.06)]">
+              COMING SOON
+            </span>
+          )}
+          {tool.live && tool.slug && (
+            <Link
+              href={tool.slug}
+              className="text-[13px] text-[#C3FCFE] border border-[rgba(195,252,254,0.2)] px-4 py-1.5 rounded-lg hover:bg-[rgba(195,252,254,0.08)] transition-all duration-200"
+            >
+              CALCULATE →
+            </Link>
+          )}
+        </div>
+
+        {/* Study Panel */}
+        <AnimatePresence initial={false}>
+          {open && tool.studyPanel && (
+            <motion.div
+              key="panel"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+              <StudyPanelContent panel={tool.studyPanel} />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
+    </motion.div>
+  );
+}
+
+/* ─── Main Page ─────────────────────────────────────────── */
+export default function ToolsPage() {
+  return (
+    <main className="min-h-screen bg-[#07090D] text-white overflow-x-hidden">
+      <style>{`
+        @keyframes floatCard {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-8px); }
+        }
+        @keyframes magPulse {
+          0%, 100% { transform: rotate(-35deg) scale(1); opacity: 0.7; }
+          50% { transform: rotate(-35deg) scale(1.03); opacity: 1; }
+        }
+        @keyframes blobDrift {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          50% { transform: translate(30px, -20px) scale(1.08); }
+        }
+        .float-1 { animation: floatCard 4s ease-in-out infinite; }
+        .float-2 { animation: floatCard 5.5s ease-in-out infinite; }
+        .float-3 { animation: floatCard 3.8s ease-in-out infinite; }
+        .float-4 { animation: floatCard 6s ease-in-out infinite; }
+        .mag-pulse { animation: magPulse 3s ease-in-out infinite; }
+        .blob-drift { animation: blobDrift 12s ease-in-out infinite; }
+      `}</style>
+
+      {/* ── AMBIENT BLOBS ── */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div className="blob-drift absolute top-[-10%] left-[15%] w-[600px] h-[600px] rounded-full bg-[rgba(198,159,245,0.07)] blur-[120px]" />
+        <div className="absolute top-[20%] right-[5%] w-[500px] h-[500px] rounded-full bg-[rgba(195,252,254,0.05)] blur-[140px]" />
+      </div>
+
+      {/* ════════════════════════════════════════════
+          HERO SECTION — Two-Column
+      ════════════════════════════════════════════ */}
+      <section className="relative z-10 min-h-screen flex items-center pt-24 pb-20 px-5 md:px-10 max-w-[1280px] mx-auto">
+        <div className="w-full flex flex-col lg:flex-row items-center gap-16 lg:gap-20">
+
+          {/* ── LEFT: Text Content ── */}
+          <div className="flex-1 flex flex-col items-start max-w-[560px]">
+
+            {/* Badge */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="mb-7"
+            >
+              <span className="inline-block border border-[rgba(195,252,254,0.4)] text-[#C3FCFE] text-[11px] font-bold tracking-[2px] uppercase px-4 py-2 rounded-full bg-[rgba(195,252,254,0.04)]">
+                PEER-REVIEWED TOOLS
+              </span>
+            </motion.div>
+
+            {/* H1 */}
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: 0.08 }}
+              className="text-[clamp(48px,7vw,80px)] font-bold leading-[1.05] tracking-tight mb-6"
+              style={{ fontFamily: "var(--font-outfit, 'Outfit', sans-serif)" }}
+            >
+              <span className="text-[#F0EDE6]">Most Fitness Tools</span>
+              <br />
+              <span
+                className="text-transparent bg-clip-text"
+                style={{ backgroundImage: "linear-gradient(90deg, #C3FCFE 0%, #C69FF5 100%)" }}
+              >
+                LIE TO YOU.
+              </span>
+            </motion.h1>
+
+            {/* Subheading */}
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: 0.16 }}
+              className="text-[16px] md:text-[17px] text-[#9A9EC4] leading-[1.75] max-w-[480px] mb-8"
+            >
+              We only built tools where the science was already settled. Every calculator here is backed by peer-reviewed research — not bro-science, not gym myths. Just what actually works.
+            </motion.p>
+
+            {/* 3 Trust Points */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: 0.24 }}
+              className="flex flex-col gap-3 mb-10"
+            >
+              {[
+                "498+ subjects validated our calorie formula",
+                "We show you which study we used — and why",
+                "If better research exists, we update the tool",
+              ].map((point, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <div className="mt-[6px] w-2 h-2 rounded-full shrink-0" style={{ background: "linear-gradient(135deg, #C3FCFE, #C69FF5)" }} />
+                  <p className="text-[14px] text-[#9A9EC4] leading-[1.6]">{point}</p>
+                </div>
+              ))}
+            </motion.div>
+
+            {/* CTA */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: 0.32 }}
+              className="flex flex-col items-start gap-3"
+            >
+              <a
+                href="#tools-grid"
+                className="inline-block px-8 py-4 rounded-lg text-[#07090D] font-bold text-[16px] tracking-[2px] uppercase transition-all duration-200 hover:-translate-y-1 hover:brightness-110 active:scale-95"
+                style={{
+                  background: "linear-gradient(135deg, #C3FCFE 0%, #C69FF5 100%)",
+                  fontFamily: "var(--font-outfit, 'Outfit', sans-serif)",
+                  boxShadow: "0 0 30px rgba(195,252,254,0.25)",
+                }}
+              >
+                EXPLORE TOOLS →
+              </a>
+              <p className="text-[12px] text-[#4A4A75]">4 tools available · More coming soon</p>
+            </motion.div>
+          </div>
+
+          {/* ── RIGHT: Floating Visual ── */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+            className="relative flex-1 w-full max-w-[540px] h-[460px] md:h-[480px] shrink-0"
+          >
+            {/* BG glow blob */}
+            <div
+              className="absolute inset-0 pointer-events-none z-0"
+              style={{ background: "radial-gradient(circle at 60% 40%, rgba(195,252,254,0.06) 0%, transparent 65%)" }}
+            />
+
+            {/* Floating Tool Cards */}
+            {HERO_CARDS.map((card, i) => (
+              <div
+                key={i}
+                className={`float-${i + 1} absolute z-10`}
+                style={{
+                  ...card.style,
+                  rotate: undefined,
+                  transform: `rotate(${card.style.rotate})`,
+                  top: card.style.top,
+                  left: card.style.left,
+                  right: card.style.right,
+                  bottom: card.style.bottom,
+                }}
+              >
+                <div
+                  className="relative px-4 py-3.5 rounded-2xl min-w-[180px] max-w-[210px]"
+                  style={{
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.10)",
+                    backdropFilter: "blur(12px)",
+                    boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+                  }}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xl">{card.icon}</span>
+                    <p className="text-[14px] font-bold text-white truncate">{card.name}</p>
+                  </div>
+                  <p className="text-[11px] text-[#6B6F9A] ml-8">{card.desc}</p>
+                  <div
+                    className="absolute bottom-3 right-3 w-2 h-2 rounded-full"
+                    style={{ background: "linear-gradient(135deg, #C3FCFE, #C69FF5)", boxShadow: "0 0 6px rgba(195,252,254,0.6)" }}
+                  />
+                </div>
+              </div>
+            ))}
+
+            {/* Magnifier */}
+            <div
+              className="mag-pulse absolute bottom-[-20px] right-[-20px] z-20"
+              style={{ width: 160, height: 160 }}
+            >
+              {/* Circle */}
+              <div
+                style={{
+                  width: 110,
+                  height: 110,
+                  borderRadius: "50%",
+                  border: "3px solid rgba(195,252,254,0.55)",
+                  background: "rgba(195,252,254,0.04)",
+                  backdropFilter: "blur(4px)",
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  transform: "rotate(-35deg)",
+                  transformOrigin: "center",
+                  boxShadow: "0 0 20px rgba(195,252,254,0.2)",
+                }}
+              />
+              {/* Handle */}
+              <div
+                style={{
+                  width: 4,
+                  height: 55,
+                  background: "linear-gradient(180deg, rgba(195,252,254,0.7) 0%, transparent 100%)",
+                  borderRadius: 2,
+                  position: "absolute",
+                  bottom: 0,
+                  right: 28,
+                  transform: "rotate(40deg)",
+                  transformOrigin: "top center",
+                }}
+              />
+            </div>
+
+            {/* Center Label */}
+            <div className="absolute inset-0 flex items-center justify-center z-0 pointer-events-none">
+              <div
+                className="text-[11px] font-bold tracking-[3px] uppercase opacity-20"
+                style={{ color: "#C3FCFE" }}
+              >
+                RESEARCH BACKED
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════
+          TOOLS GRID SECTION
+      ════════════════════════════════════════════ */}
+      <section id="tools-grid" className="relative z-10 max-w-[1280px] mx-auto px-5 md:px-10 pt-20 pb-24 scroll-mt-20">
+
+        {/* Section Label */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="mb-5"
+        >
+          <p
+            className="text-[11px] font-bold tracking-[3px] uppercase mb-3"
+            style={{ color: "#C3FCFE" }}
+          >
+            THE TOOLKIT
+          </p>
+          <h2
+            className="text-[clamp(28px,5vw,42px)] font-bold text-[#F5F7FA] leading-tight tracking-tight"
+            style={{ fontFamily: "var(--font-outfit, 'Outfit', sans-serif)" }}
+          >
+            Built on Research.{" "}
+            <span
+              className="text-transparent bg-clip-text"
+              style={{ backgroundImage: "linear-gradient(90deg, #C3FCFE 0%, #C69FF5 100%)" }}
+            >
+              Designed for Results.
+            </span>
+          </h2>
+        </motion.div>
+
+        {/* Divider */}
+        <div
+          className="w-full h-px mb-12"
+          style={{ background: "linear-gradient(90deg, rgba(195,252,254,0.3) 0%, transparent 70%)" }}
+        />
+
+        {/* Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          {TOOLS.map((tool, i) => (
+            <motion.div
+              key={tool.id}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.45, delay: i * 0.07 }}
+            >
+              <ToolCard tool={tool} />
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Bottom note */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="text-center text-[13px] text-[#4A4A75] mt-12"
+        >
+          New tools are added as we validate the underlying research.{" "}
+          <span className="text-[#9A9EC4]">No guesswork. Ever.</span>
+        </motion.p>
+      </section>
     </main>
   );
 }

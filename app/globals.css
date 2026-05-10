@@ -397,6 +397,7 @@ body {
 /* Range slider */
 input[type="range"] {
   -webkit-appearance: none;
+  appearance: none;
   width: 100%;
   height: 4px;
   background: rgba(195,252,254,0.15);
