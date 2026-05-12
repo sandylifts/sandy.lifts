@@ -365,6 +365,14 @@ export default function AICoach() {
         }
         .animate-robot-float { animation: robotFloat 3s ease-in-out infinite; }
 
+        @keyframes floatSlow {
+          0%, 100% { transform: translateY(0px); }
+          50%      { transform: translateY(-8px); }
+        }
+        .animate-float-slow-1 { animation: floatSlow 5s ease-in-out infinite; }
+        .animate-float-slow-2 { animation: floatSlow 6s ease-in-out infinite 0.5s; }
+        .animate-float-slow-3 { animation: floatSlow 5.5s ease-in-out infinite 1s; }
+
         @keyframes robotReveal {
           0%   { opacity: 0; transform: scale(0.7) translateY(4px); }
           60%  { opacity: 1; transform: scale(1.05) translateY(0px); }
@@ -734,7 +742,6 @@ export default function AICoach() {
                     </div>
                   </div>
                 </div>
-
 
               </div>
 

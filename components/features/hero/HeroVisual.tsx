@@ -9,7 +9,7 @@ const PHOTO_SRC = "/hero-selfie.png";
 export default function HeroVisual() {
   return (
     <div 
-      className="relative hidden lg:flex items-center justify-end w-full max-w-[650px] h-[650px] select-none -translate-y-4"
+      className="relative hidden lg:flex items-center justify-end w-full max-w-[650px] h-[650px] select-none -translate-y-16"
       aria-hidden="true"
     >
       <style>{`
@@ -53,7 +53,7 @@ export default function HeroVisual() {
       </div>
 
       {/* THE CARDS (Right Side Stack) */}
-      <div className="absolute right-[0%] top-[10%] flex flex-col gap-6 z-30 w-[240px]">
+      <div className="absolute right-[0%] top-[2%] flex flex-col gap-6 z-30 w-[240px]">
         
         {/* CARD 1 — CALORIES GOAL */}
         <div 
