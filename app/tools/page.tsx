@@ -38,11 +38,29 @@ const TOOLS: Tool[] = [
     },
   },
   {
+    id: "neat",
+    icon: "⚡",
+    name: "BMI + NEAT Estimator",
+    desc: "Dual WHO/Indian BMI · Non-exercise calorie burn",
+    slug: "/tools/neat-estimator",
+    live: true,
+    studyPanel: {
+      why: "Most tools ignore NEAT — the calories burned outside deliberate exercise. Research shows NEAT can vary by 2,000 kcal/day between individuals of the same weight. We also use Asian Indian BMI cutoffs, which WHO standards systematically underestimate risk for.",
+      studies: [
+        { name: "Levine JA et al., 2005", detail: "Science — NEAT interindividual variation up to 2,000 kcal/day", tag: { label: "PRIMARY", type: "primary" } },
+        { name: "WHO Expert Consultation, 2004", detail: "Asian population BMI advisory — Lancet", tag: { label: "COMPARED", type: "compared" } },
+        { name: "Misra A et al., 2009", detail: "Consensus guidelines for Asian Indians — Nutrition", tag: { label: "COMPARED", type: "compared" } },
+      ],
+      bottomLine: "Obese individuals sit 2 hours more per day than lean people. Closing that gap = 350 kcal/day = ~16 kg/year. NEAT is the most overlooked variable in body composition.",
+    },
+  },
+  {
     id: "bodyfat",
     icon: "🧬",
     name: "Body Fat %",
     desc: "Navy Method — most accessible estimate",
-    live: false,
+    slug: "/tools/body-fat",
+    live: true,
     studyPanel: {
       why: "The US Navy circumference method was chosen for its accessibility and clinically validated accuracy — no DEXA required. It outperforms BMI-based estimates in lean populations.",
       studies: [
@@ -57,7 +75,8 @@ const TOOLS: Tool[] = [
     icon: "💪",
     name: "Protein Target",
     desc: "Evidence-based daily protein goal",
-    live: false,
+    slug: "/tools/protein-target",
+    live: true,
     studyPanel: {
       why: "Morton et al. 2018 is the largest systematic review on protein and muscle growth to date — covering 1,800+ subjects. It settled the decades-long debate on optimal intake.",
       studies: [
@@ -69,7 +88,7 @@ const TOOLS: Tool[] = [
   },
   {
     id: "tdee",
-    icon: "⚡",
+    icon: "📊",
     name: "TDEE Calculator",
     desc: "Total daily energy with activity",
     live: false,
@@ -80,6 +99,106 @@ const TOOLS: Tool[] = [
         { name: "Black AE et al.", detail: "1996 · 574 subjects · European Journal of Clinical Nutrition", tag: { label: "COMPARED", type: "compared" } },
       ],
       bottomLine: "Activity-adjusted multipliers reduce overestimation error by ~12% versus standard fixed-coefficient models.",
+    },
+  },
+  {
+    id: "calorie-deficit",
+    icon: "🔻",
+    name: "Calorie Deficit Planner",
+    desc: "3-zone system · Hall 2012 · Anyiam 2024",
+    slug: "/tools/calorie-deficit",
+    live: true,
+    studyPanel: {
+      why: "Most deficit tools give you a number. We show you the risk zone — because going too fast costs you muscle and slows your metabolism. 4,785-participant meta-analysis is the basis.",
+      studies: [
+        { name: "Anyiam O et al. — Nutrients 2024", detail: "49 studies, 4,785 participants · Muscle constitutes ~27% of weight lost during severe restriction", tag: { label: "PRIMARY", type: "primary" } },
+        { name: "Frontiers in Nutrition 2025 · 62 RCTs, 4,429 participants", detail: "Avoid deficits >500 kcal/day to preserve lean body mass", tag: { label: "PRIMARY", type: "primary" } },
+        { name: "Hall KD et al. — NIH 2012", detail: "Mathematical model: 7,700 kcal deficit = 1 kg fat loss", tag: { label: "COMPARED", type: "compared" } },
+      ],
+      bottomLine: "A 500 kcal/day deficit loses ~0.5 kg/week and preserves muscle. At 1,000 kcal/day, 27% of what you lose is muscle.",
+    },
+  },
+  {
+    id: "visceral-fat",
+    icon: "📏",
+    name: "Visceral Fat Risk Estimator",
+    desc: "WHtR · NICE 2022 · Indian cutoffs",
+    slug: "/tools/visceral-fat",
+    live: true,
+    studyPanel: {
+      why: "BMI doesn't tell you where fat is stored. Visceral fat (around your organs) is the real risk. WHtR is the gold standard — validated in 78 studies across 14 countries.",
+      studies: [
+        { name: "Ashwell M & Gibson S — Nutr Research Reviews 2010", detail: "78 studies: WHtR outperforms BMI for CVD and diabetes prediction", tag: { label: "PRIMARY", type: "primary" } },
+        { name: "NICE Guidelines — October 2022", detail: "WHtR ≥ 0.5 defines central adiposity across all sexes and ethnicities", tag: { label: "PRIMARY", type: "primary" } },
+        { name: "Lancet Regional Health — SE Asia 2023", detail: "NFHS-5: 6.59L Indian women + 85,976 men — first national dataset", tag: { label: "COMPARED", type: "compared" } },
+      ],
+      bottomLine: "Keep your waist less than half your height. Simple, free, and clinically validated.",
+    },
+  },
+  {
+    id: "fiber-calculator",
+    icon: "🥗",
+    name: "Fiber Needs Calculator",
+    desc: "ICMR-NIN 2024 · Indian food sources",
+    slug: "/tools/fiber-calculator",
+    live: true,
+    studyPanel: {
+      why: "American fiber guidelines don't apply to Indian diets. We use ICMR-NIN 2024 — India's own dietary guidelines — scaled to your calorie intake, with Indian food composition data (IFCT 2017).",
+      studies: [
+        { name: "ICMR-NIN Dietary Guidelines — 2024", detail: "56.4% of India's disease burden linked to unhealthy diets", tag: { label: "PRIMARY", type: "primary" } },
+        { name: "ICMR-NIN Nutrient Requirements — 2020", detail: "30g per 2000 kcal — established Indian RDA", tag: { label: "PRIMARY", type: "primary" } },
+        { name: "Alahmari LA — Frontiers in Nutrition 2024", detail: "Dietary fiber reduces CVD, T2D, obesity and colon cancer risk", tag: { label: "COMPARED", type: "compared" } },
+      ],
+      bottomLine: "Average urban Indian gets 12–15g/day — half of target. Dal at lunch and sabzi at dinner closes most of the gap.",
+    },
+  },
+  {
+    id: "diet-break",
+    icon: "☕",
+    name: "Diet Break Calculator",
+    desc: "MATADOR protocol · 47% more fat loss",
+    slug: "/tools/diet-break",
+    live: true,
+    studyPanel: {
+      why: "Continuous dieting causes adaptive thermogenesis — your body slows metabolism and increases hunger hormones to fight back. Planned breaks at maintenance calories reverse this. It's not cheating, it's the MATADOR protocol.",
+      studies: [
+        { name: "Byrne NM et al. — Int J Obesity 2017 (MATADOR)", detail: "51 men · 47% greater fat loss with 2-week diet breaks vs continuous restriction", tag: { label: "PRIMARY", type: "primary" } },
+        { name: "Henselmans M et al. — J Hum Kinet 2023", detail: "IER attenuates fat-free mass loss in resistance-trained individuals", tag: { label: "COMPARED", type: "compared" } },
+      ],
+      bottomLine: "Dieting 8+ weeks without a break costs you lean mass and slows your metabolism. Take 1–2 weeks at maintenance every 6–8 weeks.",
+    },
+  },
+  {
+    id: "rebound-risk",
+    icon: "🛡️",
+    name: "Rebound Risk Checker",
+    desc: "7-question quiz · Sumithran NEJM 2011",
+    slug: "/tools/rebound-risk",
+    live: true,
+    studyPanel: {
+      why: "Up to 80% of people regain lost weight. Not because they stopped trying — because hunger hormones (ghrelin) stay elevated for 12+ months after weight loss. We built this to help you understand and fight that biology.",
+      studies: [
+        { name: "Sumithran P et al. — NEJM 2011", detail: "Ghrelin elevated for 62+ weeks after 13.5 kg weight loss — 1 year hormonal suppression", tag: { label: "PRIMARY", type: "primary" } },
+        { name: "van Baak MA & Mariman ECM — Curr Obesity Rep 2025", detail: "Latest review: lean mass loss, gut microbiota, hormonal adaptation all cause rebound", tag: { label: "PRIMARY", type: "primary" } },
+        { name: "Spiegel K et al. — Sleep 2004", detail: "Sleep restriction raises ghrelin 28% — mimics weight regain hormonal state", tag: { label: "COMPARED", type: "compared" } },
+      ],
+      bottomLine: "You didn't regain weight because you were weak. Your body released more hunger hormone for a year after reaching your goal. Protein, resistance training, sleep and weekly weigh-ins are the tools to fight it.",
+    },
+  },
+  {
+    id: "calories-by-height",
+    icon: "📏",
+    name: "Calories by Height",
+    desc: "Height-based calorie range · Ideal weight · Mifflin-St Jeor",
+    slug: "/tools/calories-by-height",
+    live: true,
+    studyPanel: {
+      why: "Most calorie calculators require your current weight to work. But if you don't know what you SHOULD weigh, where do you even start? This tool works backwards from your height.",
+      studies: [
+        { name: "Misra A et al. — Nutrition 2009", detail: "Consensus guidelines for Asian Indians: healthy BMI 18.5–22.9", tag: { label: "PRIMARY", type: "primary" } },
+        { name: "Mifflin MD et al. — 1990", detail: "Most accurate BMR equation for diverse populations", tag: { label: "PRIMARY", type: "primary" } },
+      ],
+      bottomLine: "Knowing your healthy weight range before starting a diet gives you a realistic target — not just an arbitrary number from the scale.",
     },
   },
 ];
@@ -328,7 +447,7 @@ export default function ToolsPage() {
               >
                 EXPLORE TOOLS →
               </a>
-              <p className="text-[12px] text-[#4A4A75]">4 tools available · More coming soon</p>
+              <p className="text-[12px] text-[#4A4A75]">5 tools available · More coming soon</p>
             </motion.div>
           </div>
 

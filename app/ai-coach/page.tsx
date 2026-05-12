@@ -646,24 +646,23 @@ export default function AICoach() {
                   {/* Hologram - Mobile */}
                   <div className="lg:hidden w-full flex items-center justify-center relative my-6 animate-fade-in-up-hero" style={{ animationDelay: '700ms' }}>
                     <div className="relative w-[260px] h-[390px]">
-                      {/* Deep glow aura */}
-                      <div className="absolute inset-[-30%] rounded-full bg-[#7C3AED]/25 blur-[80px] animate-glow-v" />
-                      <div className="absolute inset-[-12%] rounded-full bg-[#A855F7]/10 blur-[40px]" />
-                      {/* Platform rings */}
-                      <div className="absolute bottom-[-8px] left-1/2 -translate-x-1/2 w-[170px] h-[40px]">
-                        <div className="absolute inset-0 rounded-[100%] border border-[#8B5CF6]/60 animate-outer-ring" />
-                        <div className="absolute inset-[7px] rounded-[100%] border border-[#c084fc]/30 animate-inner-ring" />
-                        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[80px] h-[12px] bg-[#8B5CF6]/30 blur-lg rounded-full animate-glow-v" />
-                      </div>
+                      {/* Ambient matching glow to integrate the cyan hologram vibe */}
+                      <div className="absolute inset-[-10%] rounded-full bg-[#00D4FF]/10 blur-[60px] pointer-events-none" />
+                      
                       {/* Body image */}
                       <div className="absolute inset-0 flex items-center justify-center animate-xray-float" style={{ animationDuration: '8s' }}>
-                        <img
-                          src="/body-hologram.png"
-                          alt="AI Body Analysis Model"
+                        <video
+                          src="/ai-hologram.gif..mp4"
+                          autoPlay
+                          loop
+                          muted
+                          playsInline
                           className="w-full h-full object-contain select-none pointer-events-none"
-                          style={{
+                          style={{ 
                             mixBlendMode: 'screen',
-                            filter: 'hue-rotate(55deg) saturate(1.6) brightness(1.35) drop-shadow(0 0 20px rgba(139,92,246,0.9)) drop-shadow(0 0 50px rgba(167,139,250,0.5))',
+                            WebkitMaskImage: 'radial-gradient(ellipse 80% 90% at 50% 50%, black 40%, transparent 100%)',
+                            maskImage: 'radial-gradient(ellipse 80% 90% at 50% 50%, black 40%, transparent 100%)',
+                            filter: 'contrast(1.3) brightness(0.9) saturate(1.1)'
                           }}
                         />
                       </div>
@@ -749,27 +748,23 @@ export default function AICoach() {
 
                     {/* ── CENTRAL HOLOGRAM ── */}
                     <div className="relative w-[300px] h-[580px] mx-auto">
-                      {/* Multi-layer glow aura */}
-                      <div className="absolute inset-[-20%] rounded-full bg-[#7C3AED]/20 blur-[90px] animate-glow-v pointer-events-none" />
-                      <div className="absolute inset-[-8%] rounded-full bg-[#A855F7]/10 blur-[50px] pointer-events-none" />
-
-                      {/* Platform rings */}
-                      <div className="absolute bottom-[-12px] left-1/2 -translate-x-1/2 w-[240px] h-[56px]">
-                        <div className="absolute inset-0 rounded-[100%] border border-[#8B5CF6]/65 animate-outer-ring" style={{ boxShadow: '0 0 20px rgba(139,92,246,0.35)' }} />
-                        <div className="absolute inset-[7px] rounded-[100%] border border-[#c084fc]/35 animate-inner-ring" />
-                        <div className="absolute inset-[-16px] rounded-[100%] border border-[#A855F7]/12 animate-outer-ring" style={{ animationDuration: '30s' }} />
-                        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[110px] h-[14px] bg-[#8B5CF6]/35 blur-xl rounded-full animate-glow-v" />
-                      </div>
+                      {/* Ambient matching glow to integrate the cyan hologram vibe */}
+                      <div className="absolute inset-[-20%] rounded-full bg-[#00D4FF]/10 blur-[80px] pointer-events-none" />
 
                       {/* Body image */}
                       <div className="absolute inset-0 flex items-center justify-center animate-xray-float" style={{ animationDuration: '9s' }}>
-                        <img
-                          src="/body-hologram.png"
-                          alt="3D AI Body Model"
+                        <video
+                          src="/ai-hologram.gif..mp4"
+                          autoPlay
+                          loop
+                          muted
+                          playsInline
                           className="w-full h-full object-contain select-none pointer-events-none"
-                          style={{
+                          style={{ 
                             mixBlendMode: 'screen',
-                            filter: 'hue-rotate(55deg) saturate(1.65) brightness(1.3) drop-shadow(0 0 28px rgba(139,92,246,0.95)) drop-shadow(0 0 70px rgba(167,139,250,0.45)) drop-shadow(0 0 120px rgba(168,85,247,0.2))',
+                            WebkitMaskImage: 'radial-gradient(ellipse 80% 90% at 50% 50%, black 50%, transparent 100%)',
+                            maskImage: 'radial-gradient(ellipse 80% 90% at 50% 50%, black 50%, transparent 100%)',
+                            filter: 'contrast(1.3) brightness(0.9) saturate(1.1)'
                           }}
                         />
                       </div>
