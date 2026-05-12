@@ -76,9 +76,9 @@ export async function POST(req: Request) {
 
     const completion = await groq.chat.completions.create({
       messages: messages as any,
-      model: "llama3-8b-8192", // Using Llama 3 8B (Super fast & free tier friendly)
+      model: "llama-3.3-70b-versatile", // Llama 3.3 70B — premium quality, still free on Groq
       temperature: 0.7,
-      max_tokens: 1500,
+      max_tokens: 2048,
     });
 
     const responseContent = completion.choices[0]?.message?.content;

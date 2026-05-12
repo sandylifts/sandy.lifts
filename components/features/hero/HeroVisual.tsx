@@ -138,7 +138,6 @@ export default function HeroVisual() {
                   WebkitMaskImage: "radial-gradient(circle, transparent 55%, black 56%)"
                 }}
               />
-              {/* Inner glowing core */}
               <div className="w-10 h-10 rounded-full shadow-[inset_0_0_10px_rgba(34,211,238,0.2)] flex items-center justify-center">
                 <span className="text-white font-bold text-[11px]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>40%</span>
               </div>

@@ -3,10 +3,13 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { useBodyProfile } from "@/hooks/useBodyProfile";
 import {
-  Target, Dumbbell, Apple, Zap, User, Lock, ArrowRight, ShieldCheck,
-  CheckCircle2, AlertTriangle, MessageSquare, Flame, BarChart3,
-  BrainCircuit, RefreshCw, TrendingDown, TrendingUp, Wrench, MapPin, Salad, ChevronRight, Activity, ArrowLeft,
+  Target, Dumbbell, Apple, Zap, User, ArrowRight, ShieldCheck,
+  CheckCircle2, AlertTriangle, MessageSquare, Flame,
+  BrainCircuit, RefreshCw, TrendingDown, TrendingUp, Salad, Activity, ArrowLeft,
   Droplets, Moon, Clock
 } from "lucide-react";
 import Link from "next/link";
@@ -15,37 +18,7 @@ import Link from "next/link";
 type Phase = "hook" | "gender" | "path" | "quiz" | "analyzing" | "results";
 type PathType = "workout" | "diet" | "both";
 
-interface QuizOption { emoji: string; label: string; desc: string; badge?: string; }
-interface QuizQuestion { id: string; text: string; subtitle: string; options: QuizOption[]; }
-interface ChatMessage { id: string; sender: "ai" | "user"; text: string; options?: QuizOption[]; isTeaser?: boolean; }
 
-/* ─── Core 3 Questions (always shown) ───────────────── */
-const CORE_Q: QuizQuestion[] = [
-  {
-    id: "goal", text: "What's your main goal right now?", subtitle: "Be honest — no judgment here 💬",
-    options: [
-      { emoji: "🔥", label: "Lose Fat", desc: "Slim, lean aur confident dikhna chahta/chahti hoon" },
-      { emoji: "💪", label: "Build Muscle", desc: "Strong, bigger aur powerful banna chahta/chahti hoon" },
-      { emoji: "⚡", label: "Transform Completely", desc: "Fat ghataana + muscle build — complete change chahiye", badge: "Most Popular" },
-    ]
-  },
-  {
-    id: "level", text: "How long have you been training consistently?", subtitle: "This shapes your entire blueprint",
-    options: [
-      { emoji: "🌱", label: "Just Starting", desc: "Gym/exercise abhi start ki hai ya restart kar raha hoon" },
-      { emoji: "🔥", label: "Some Experience", desc: "6+ months active hoon but results slow hain" },
-      { emoji: "💎", label: "Experienced", desc: "2+ years serious training, next level chahiye" },
-    ]
-  },
-  {
-    id: "location", text: "Where do you train most often?", subtitle: "We'll build your plan around your setup",
-    options: [
-      { emoji: "🏋️", label: "Gym", desc: "Full equipment available" },
-      { emoji: "🏠", label: "Home / Outdoor", desc: "Minimal or no equipment" },
-      { emoji: "🔄", label: "Both", desc: "Flexible — gym + home mix" },
-    ]
-  },
-];
 
 
 
@@ -69,31 +42,80 @@ const getCalorieBadge = (a: Record<string, string>) => {
   return { label: "Calorie Strategy", val: "Cycling approach", color: "#a78bfa" };
 };
 
+/* ─── Mifflin-St Jeor Macro Calculator ───────────────── */
+const calcMacros = (ans: Record<string, any>) => {
+  const weight = parseFloat(ans.weight) || 70;
+  const height = parseFloat(ans.height) || 170;
+  const age    = parseFloat(ans.age)    || 25;
+  const g      = ans.gender || "male";
+  const goal   = ans.goal   || "";
+  const bmr    = g === "female"
+    ? 10 * weight + 6.25 * height - 5 * age - 161
+    : 10 * weight + 6.25 * height - 5 * age + 5;
+  const palMap: Record<string, number> = {
+    "Just Starting": 1.375, "Beginner": 1.375, "Nothing": 1.2,
+    "Walk / Yoga": 1.375, "Gym (Beginner)": 1.375,
+    "Some Experience": 1.55, "Intermediate": 1.55, "Gym (Regular)": 1.55,
+    "Experienced": 1.725, "Advanced": 1.725,
+  };
+  const pal  = palMap[ans.level] || palMap[ans.activity] || 1.55;
+  const tdee = bmr * pal;
+  const isFat    = goal.includes("Fat") || goal === "Toning";
+  const isMuscle = goal.includes("Muscle");
+  const calories = Math.round(isFat ? tdee - 400 : isMuscle ? tdee + 250 : tdee);
+  const protein  = Math.round(weight * (isMuscle ? 2.0 : 1.8));
+  const fats     = Math.round((calories * 0.25) / 9);
+  const carbs    = Math.max(Math.round((calories - protein * 4 - fats * 9) / 4), 50);
+  return { calories, protein, carbs, fats };
+};
+
+/* ─── Isolated Components ─────────────────────────────── */
+const RefinementInput = ({ isRefining, onRefine }: { isRefining: boolean, onRefine: (prompt: string) => void }) => {
+  const [val, setVal] = useState("");
+  return (
+    <div className="flex flex-col md:flex-row gap-3 relative z-20">
+      <input 
+        type="text" 
+        value={val}
+        onChange={(e) => setVal(e.target.value)}
+        onKeyDown={(e) => { if (e.key === 'Enter' && val.trim() && !isRefining) { onRefine(val); setVal(""); } }}
+        placeholder="E.g., 'Make it 3 days a week' or 'I want more arms focus'..." 
+        className="flex-1 bg-[#05050B]/60 border border-[#A78BFA]/20 rounded-2xl px-5 py-4 text-sm text-white focus:outline-none focus:border-[#A78BFA]/60 focus:shadow-[0_0_20px_rgba(167,139,250,0.15)] transition-all placeholder:text-[#AAB3C5]/50"
+        disabled={isRefining}
+      />
+      <button 
+        onClick={() => { onRefine(val); setVal(""); }}
+        disabled={isRefining || !val.trim()}
+        className="relative group bg-gradient-to-r from-[#A78BFA] to-[#4DA3FF] disabled:opacity-50 text-white rounded-2xl px-8 py-4 font-bold text-sm transition-all flex items-center justify-center min-w-[150px] hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(167,139,250,0.3)] hover:shadow-[0_0_30px_rgba(167,139,250,0.5)] overflow-hidden"
+      >
+        <span className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
+        {isRefining ? <RefreshCw className="w-5 h-5 animate-spin relative z-10" /> : <span className="relative z-10 flex items-center gap-2">Update AI <Zap className="w-4 h-4 fill-white" /></span>}
+      </button>
+    </div>
+  );
+};
+
 /* ─── Component ──────────────────────────────────────── */
 export default function AICoach() {
   const [phase, setPhase] = useState<Phase>("hook");
   const [pathType, setPathType] = useState<PathType>("both");
-  const [currentQIdx, setCurrentQIdx] = useState(0);
-  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [quizStep, setQuizStep] = useState(1);
-  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const [quizError, setQuizError] = useState("");
   const [typedInsight, setTypedInsight] = useState("");
   const [aiResponse, setAiResponse] = useState<string | null>(null);
   const [isDeepAnalysis, setIsDeepAnalysis] = useState(false);
-  const [refineInput, setRefineInput] = useState("");
   const [isRefining, setIsRefining] = useState(false);
   const [aiHistory, setAiHistory] = useState<{role: string, content: string}[]>([]);
+  const [mounted, setMounted] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const profile = useBodyProfile();
   const router = useRouter();
 
-  const handleRefine = async () => {
-    if (!refineInput.trim()) return;
-    const promptText = refineInput;
-    setRefineInput("");
+  const handleRefine = async (promptText: string) => {
+    if (!promptText.trim()) return;
     setIsRefining(true);
-    
     setAiHistory(prev => [...prev, { role: "user", content: promptText }]);
-    
     try {
       const res = await fetch("/api/ai-coach", {
         method: "POST",
@@ -101,22 +123,25 @@ export default function AICoach() {
         body: JSON.stringify({ ...answers, pathType, history: aiHistory, prompt: promptText }),
       });
       const result = await res.json();
-      if (res.ok) {
-        setAiResponse(result.data);
-        setAiHistory(prev => [...prev, { role: "assistant", content: result.data }]);
+      if (!res.ok) {
+        if (res.status === 429) {
+          // Graceful rate limit handling
+          setAiResponse(prev => (prev || "") + "\n\n---\n\n> [!WARNING] **NETWORK CONGESTION**\n> High Traffic: The AI is currently routing 1000s of requests. Automatically retrying in 10 seconds...");
+          setTimeout(() => handleRefine(promptText), 10000);
+          return;
+        }
+        throw new Error(result.message);
       }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsRefining(false);
-    }
+      setAiResponse(result.data);
+      setAiHistory(prev => [...prev, { role: "assistant", content: result.data }]);
+    } catch (e) { console.error(e); }
+    finally { setIsRefining(false); }
   };
 
-
   const handleBack = () => {
-    if (phase === "results") setPhase("quiz");
+    if (phase === "results") { setPhase("path"); setAiResponse(null); setAiHistory([]); }
     else if (phase === "quiz") {
-      if (quizStep > 1) setQuizStep(prev => prev - 1);
+      if (quizStep > 1) { setQuizStep(prev => prev - 1); setQuizError(""); }
       else setPhase("path");
     }
     else if (phase === "path") setPhase("gender");
@@ -128,6 +153,19 @@ export default function AICoach() {
     setAnswers(prev => ({ ...prev, gender: g }));
     setTimeout(() => setPhase("path"), 300);
   };
+
+  // ── Hydration guard: mount video only on client (Vercel-safe) ──
+  useEffect(() => { 
+    setMounted(true); 
+  }, []);
+
+  useEffect(() => {
+    if (mounted && videoRef.current) {
+      videoRef.current.play().catch(err => {
+        console.warn("Autoplay blocked or failed:", err);
+      });
+    }
+  }, [mounted, phase]);
 
   useEffect(() => {
     if (phase === "results") {
@@ -147,79 +185,53 @@ export default function AICoach() {
     if (phase === "analyzing") {
       const fetchPlan = async () => {
         try {
-          // Keep it false initially
           const res = await fetch("/api/ai-coach", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ ...answers, pathType, history: aiHistory }),
           });
           const result = await res.json();
-          
           if (!res.ok) {
             if (res.status === 429) {
-              setIsDeepAnalysis(true); // Trigger the Top 1% UX
-              setTimeout(fetchPlan, 10000); // Smart Retry after 10s
+              setIsDeepAnalysis(true);
+              setTimeout(fetchPlan, 10000);
               return;
             }
             throw new Error(result.message || "Failed to generate plan");
           }
-          
           setAiResponse(result.data);
           setAiHistory([{ role: "assistant", content: result.data }]);
           setPhase("results");
         } catch (error) {
           console.error("Error generating plan:", error);
-          setPhase("results"); // Fallback to results if error
+          setPhase("results");
         }
       };
-
-      const timer = setTimeout(fetchPlan, 1500); // Small UI delay before fetch
+      const timer = setTimeout(fetchPlan, 1500);
       return () => clearTimeout(timer);
     }
   }, [phase, answers]);
 
+  // Pre-fill quiz fields from other tools via localStorage
   useEffect(() => {
-    if (phase === "quiz" && chatContainerRef.current) {
-      chatContainerRef.current.scrollTo({
-        top: chatContainerRef.current.scrollHeight,
-        behavior: "smooth"
-      });
-    }
-  }, [chatHistory, phase]);
+    if (!profile) return;
+    setAnswers(prev => ({
+      ...prev,
+      ...(profile.age       && !prev.age    ? { age:    String(profile.age)       } : {}),
+      ...(profile.weight_kg && !prev.weight ? { weight: String(profile.weight_kg) } : {}),
+      ...(profile.height_cm && !prev.height ? { height: String(profile.height_cm) } : {}),
+      ...(profile.gender    && !prev.gender ? { gender: profile.gender             } : {}),
+    }));
+  }, [profile]);
 
   const handleStartQuiz = () => setPhase("gender");
 
   const handlePathSelect = (p: PathType) => {
     setPathType(p);
+    setQuizStep(1);
+    setQuizError("");
     setPhase("quiz");
-    setCurrentQIdx(0);
-    setChatHistory([
-      { id: "intro", sender: "ai", text: "Perfect. 3 quick questions and your blueprint is ready ⚡" },
-      { id: "q-0", sender: "ai", text: CORE_Q[0].text, options: CORE_Q[0].options }
-    ]);
   };
-
-  const handleAnswer = (answer: string) => {
-    const q = CORE_Q[currentQIdx];
-    const msgId = `q-${currentQIdx}`;
-    setAnswers(prev => ({ ...prev, [q.id]: answer }));
-    setChatHistory(prev => [
-      ...prev.map(m => m.id === msgId ? { ...m, options: undefined } : m),
-      { id: `a-${currentQIdx}`, sender: "user", text: answer }
-    ]);
-    const isLast = currentQIdx === CORE_Q.length - 1;
-    if (isLast) {
-      setTimeout(() => { setPhase("analyzing"); }, 700);
-    } else {
-      const nextIdx = currentQIdx + 1;
-      const nextQ = CORE_Q[nextIdx];
-      setTimeout(() => {
-        setChatHistory(prev => [...prev, { id: `q-${nextIdx}`, sender: "ai", text: nextQ.text, options: nextQ.options }]);
-        setCurrentQIdx(nextIdx);
-      }, 600);
-    }
-  };
-
 
 
   return (
@@ -486,10 +498,83 @@ export default function AICoach() {
       <div className="relative z-[10] w-full">
         <AnimatePresence mode="wait">
           {phase === "hook" && (
-            <motion.div key="hook" initial={{ opacity: 1 }} exit={{ opacity: 0 }} className="relative z-[20] w-full min-h-screen pt-[80px] pb-16 lg:pb-[60px]">
+            <motion.div key="hook" initial={{ opacity: 1 }} exit={{ opacity: 0 }} className="relative z-[20] w-full min-h-screen flex flex-col pt-[80px] pb-16 lg:pb-[60px] overflow-hidden">
 
-              {/* Ticker Bar (Z=100) */}
-              <div className="relative z-[100] w-full h-[30px] lg:h-[36px] bg-gradient-to-r from-[#05050B] via-[#1a0b2e] to-[#05050B] border-y border-[#A855F7]/20 shadow-[0_4px_30px_rgba(168,85,247,0.1)] flex items-center overflow-hidden">
+              {/* ── CINEMATIC FULL-SCREEN BACKGROUND VIDEO ── */}
+              <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden" style={{ background: '#05050B' }}>
+
+                {/* Mobile: Video background */}
+                {mounted && (
+                  <video
+                    ref={videoRef}
+                    src="/hero-ai-coach.mp4"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    preload="auto"
+                    className="absolute inset-0 w-full h-full object-cover object-center lg:hidden"
+                    style={{
+                      filter: 'contrast(1.06) brightness(0.88) saturate(1.15)',
+                      willChange: 'transform',
+                    }}
+                  />
+                )}
+
+                {/* Desktop: Background image */}
+                <img
+                  src="/hero-ai-coach-bg.jpg.png"
+                  alt=""
+                  aria-hidden="true"
+                  className="absolute inset-0 w-full h-full object-cover object-center hidden lg:block"
+                  style={{
+                    filter: 'contrast(1.05) brightness(0.75) saturate(1.1)',
+                  }}
+                />
+
+                {/* ── LEFT: solid dark shield — text always crisp ── */}
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background:
+                      'linear-gradient(to right, rgba(5,5,11,1) 0%, rgba(5,5,11,0.98) 25%, rgba(5,5,11,0.92) 40%, rgba(5,5,11,0.70) 52%, rgba(5,5,11,0.30) 65%, rgba(5,5,11,0.08) 80%, transparent 100%)',
+                  }}
+                />
+
+                {/* ── RIGHT: Cinematic purple-cyan bloom over the video ── */}
+                <div
+                  className="absolute right-0 top-0 bottom-0 w-[60%] pointer-events-none"
+                  style={{
+                    background:
+                      'radial-gradient(ellipse 80% 90% at 80% 50%, rgba(139,92,246,0.22) 0%, rgba(0,212,255,0.12) 45%, transparent 72%)',
+                    mixBlendMode: 'screen',
+                  }}
+                />
+
+                {/* Thin rim light — far right edge cinematic glow */}
+                <div
+                  className="absolute right-0 top-[10%] bottom-[10%] w-[2px] pointer-events-none"
+                  style={{
+                    background: 'linear-gradient(to bottom, transparent 0%, rgba(139,92,246,0.8) 30%, rgba(0,212,255,0.6) 70%, transparent 100%)',
+                    filter: 'blur(4px)',
+                  }}
+                />
+
+                {/* Bottom page-blend fade */}
+                <div
+                  className="absolute bottom-0 left-0 right-0 h-52"
+                  style={{ background: 'linear-gradient(to top, #05050B 0%, rgba(5,5,11,0.55) 55%, transparent 100%)' }}
+                />
+
+                {/* Top soft vignette */}
+                <div
+                  className="absolute top-0 left-0 right-0 h-28"
+                  style={{ background: 'linear-gradient(to bottom, rgba(5,5,11,0.45) 0%, transparent 100%)' }}
+                />
+              </div>
+
+              {/* Ticker Bar — sits flush below the fixed navbar */}
+              <div className="relative z-[100] w-full h-[32px] lg:h-[36px] bg-gradient-to-r from-[#05050B]/80 via-[#1a0b2e]/80 to-[#05050B]/80 backdrop-blur-md border-y border-[#A855F7]/20 shadow-[0_4px_30px_rgba(168,85,247,0.1)] flex items-center overflow-hidden mb-8 lg:mb-16">
                 <div className="absolute left-0 top-0 bottom-0 w-[60px] bg-gradient-to-r from-[#0d0018] to-transparent z-10 pointer-events-none" />
                 <div className="absolute right-0 top-0 bottom-0 w-[60px] bg-gradient-to-l from-[#0d0018] to-transparent z-10 pointer-events-none" />
 
@@ -507,337 +592,152 @@ export default function AICoach() {
                 </div>
               </div>
 
-              {/* Top Navigation Bar Removed */}
+              {/* LEFT-ALIGNED CONTENT OVERLAY */}
+              <div className="relative z-[20] w-full max-w-[1440px] mx-auto px-5 lg:px-[80px] flex flex-row items-center mt-auto mb-auto">
 
-              <div className="max-w-[1440px] mx-auto px-5 lg:px-[80px] pt-6 lg:pt-12 flex flex-col lg:flex-row items-center gap-8 lg:gap-[60px]">
-
-                {/* LEFT COLUMN */}
-                <div className="w-full lg:w-[55%] flex flex-col text-center lg:text-left relative z-[20]">
+                {/* LEFT COLUMN — Text & Buttons */}
+                <div className="w-full lg:w-[52%] flex flex-col text-left items-start">
 
                   {/* Badge */}
-                  <div className="inline-flex items-center justify-center lg:justify-start gap-2 border border-[#A855F7]/50 bg-[#A855F7]/15 px-[14px] py-[6px] rounded-full mb-5 mx-auto lg:mx-0 w-fit animate-fade-in-up-hero shadow-[0_0_16px_rgba(168,85,247,0.3)]" style={{ animationDelay: '100ms' }}>
-                    <Zap size={13} className="text-[#c084fc] animate-blink-real shrink-0" fill="currentColor" />
-                    <span className="font-heading text-[10px] font-bold tracking-[0.09em] uppercase text-[#c084fc]">TOP 1% AI COACHING SYSTEM</span>
+                  <div className="inline-flex items-center gap-2 border border-[#A855F7]/50 bg-[#A855F7]/15 backdrop-blur-md px-[16px] py-[8px] rounded-full mb-6 w-fit animate-fade-in-up-hero shadow-[0_0_20px_rgba(168,85,247,0.3)]" style={{ animationDelay: '100ms' }}>
+                    <Zap size={14} className="text-[#c084fc] animate-blink-real shrink-0" fill="currentColor" />
+                    <span className="font-heading text-[11px] font-bold tracking-[0.1em] uppercase text-[#c084fc]">TOP 1% AI COACHING SYSTEM</span>
                   </div>
 
                   {/* Main Headline */}
-                  <h1 className="font-display font-bold text-[40px] md:text-[56px] lg:text-[64px] leading-[1.05] tracking-[-0.03em] max-w-[600px] mb-2 mx-auto lg:mx-0 drop-shadow-[0_0_20px_rgba(255,255,255,0.15)] animate-fade-in-up-hero text-[#FFFFFF]" style={{ animationDelay: '200ms' }}>
+                  <h1 className="font-display font-bold text-[44px] md:text-[60px] lg:text-[72px] leading-[1.05] tracking-[-0.03em] max-w-[620px] mb-4 animate-fade-in-up-hero text-[#FFFFFF]" style={{ animationDelay: '200ms', textShadow: '0 0 40px rgba(0,0,0,1), 0 2px 8px rgba(0,0,0,0.9), 0 0 80px rgba(0,0,0,0.8)' }}>
                     Trends Fail. Science Wins.
                   </h1>
 
-                  {/* Sub Headline with Robot */}
-                  <div className="flex items-center justify-center lg:justify-start gap-1.5 mb-5 animate-fade-in-up-hero" style={{ animationDelay: '300ms' }}>
-
-                    {/* Cute Futuristic SVG Robot */}
-                    <div className="relative shrink-0 w-[42px] h-[42px] sm:w-[48px] sm:h-[48px] animate-robot-reveal">
-                      <div className="animate-robot-float w-full h-full">
-                        <svg viewBox="0 0 60 70" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-[0_0_10px_rgba(168,85,247,0.8)]">
+                  {/* Sub Headline with AI Icon */}
+                  <div className="flex items-center gap-3 mb-6 animate-fade-in-up-hero" style={{ animationDelay: '300ms' }}>
+                    <div className="relative shrink-0 animate-robot-reveal">
+                      <div className="animate-robot-float relative">
+                        {/* Glow ring behind robot */}
+                        <div className="absolute inset-0 rounded-full animate-pulse-glow pointer-events-none"
+                          style={{ background: 'radial-gradient(circle, rgba(168,85,247,0.35) 0%, transparent 70%)', transform: 'scale(1.4)' }}
+                        />
+                        <svg viewBox="0 0 60 70" fill="none" xmlns="http://www.w3.org/2000/svg"
+                          className="w-[52px] h-[52px] sm:w-[58px] sm:h-[58px] relative z-10"
+                          style={{ filter: 'drop-shadow(0 0 12px rgba(168,85,247,1)) drop-shadow(0 0 24px rgba(0,212,255,0.6))' }}
+                        >
                           <defs>
                             <radialGradient id="eyeGlowL" cx="50%" cy="50%" r="50%">
-                              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9" />
+                              <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
                               <stop offset="100%" stopColor="#00D4FF" stopOpacity="1" />
                             </radialGradient>
                             <radialGradient id="eyeGlowR" cx="50%" cy="50%" r="50%">
-                              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9" />
+                              <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
                               <stop offset="100%" stopColor="#00D4FF" stopOpacity="1" />
                             </radialGradient>
                             <linearGradient id="headG" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stopColor="#2d1060" />
-                              <stop offset="100%" stopColor="#0e0528" />
+                              <stop offset="0%" stopColor="#3d1580" />
+                              <stop offset="100%" stopColor="#140840" />
                             </linearGradient>
                             <linearGradient id="bodyG" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stopColor="#1a0850" />
-                              <stop offset="100%" stopColor="#080220" />
+                              <stop offset="0%" stopColor="#2a0f6a" />
+                              <stop offset="100%" stopColor="#0a0330" />
                             </linearGradient>
                             <filter id="glow">
                               <feGaussianBlur stdDeviation="1.5" result="coloredBlur" />
                               <feMerge><feMergeNode in="coloredBlur" /><feMergeNode in="SourceGraphic" /></feMerge>
                             </filter>
                           </defs>
-                          {/* Antenna base */}
                           <line x1="30" y1="4" x2="30" y2="13" stroke="url(#eyeGlowL)" strokeWidth="1.5" strokeLinecap="round" />
-                          {/* Antenna tip glowing */}
                           <circle cx="30" cy="3" r="2.5" fill="#00D4FF" filter="url(#glow)" className="animate-pulse-dot" />
-                          {/* Head — big rounded cute */}
-                          <rect x="10" y="13" width="40" height="24" rx="10" fill="url(#headG)" stroke="#A855F7" strokeWidth="1" />
-                          {/* Visor strip across top of head */}
-                          <rect x="13" y="13" width="34" height="7" rx="7" fill="#A855F7" opacity="0.2" />
-                          {/* Eyes — large, cute, glowing */}
+                          <rect x="10" y="13" width="40" height="24" rx="10" fill="url(#headG)" stroke="#A855F7" strokeWidth="1.5" />
+                          <rect x="13" y="13" width="34" height="7" rx="7" fill="#A855F7" opacity="0.3" />
                           <rect x="15" y="19" width="10" height="9" rx="3" fill="url(#eyeGlowL)" filter="url(#glow)" />
                           <rect x="35" y="19" width="10" height="9" rx="3" fill="url(#eyeGlowR)" filter="url(#glow)" />
-                          {/* Eye pupils */}
-                          <circle cx="20" cy="23.5" r="2.5" fill="#0a0020" opacity="0.8" />
-                          <circle cx="40" cy="23.5" r="2.5" fill="#0a0020" opacity="0.8" />
-                          {/* Eye shine */}
-                          <circle cx="21.5" cy="21.5" r="1" fill="white" opacity="0.9" />
-                          <circle cx="41.5" cy="21.5" r="1" fill="white" opacity="0.9" />
-                          {/* Smile */}
-                          <path d="M21 31 Q30 36 39 31" stroke="#00D4FF" strokeWidth="1.5" strokeLinecap="round" fill="none" filter="url(#glow)" />
-                          {/* Neck */}
-                          <rect x="26" y="37" width="8" height="4" rx="2" fill="#7C3AED" opacity="0.7" />
-                          {/* Body — rounded square */}
-                          <rect x="13" y="41" width="34" height="22" rx="8" fill="url(#bodyG)" stroke="#7C3AED" strokeWidth="1" />
-                          {/* Chest panel */}
-                          <rect x="20" y="46" width="20" height="11" rx="4" fill="#A855F7" opacity="0.12" stroke="#A855F7" strokeWidth="0.5" />
-                          {/* Chest glow dot */}
-                          <circle cx="30" cy="51.5" r="3" fill="#00D4FF" opacity="0.9" filter="url(#glow)" className="animate-pulse-dot" />
-                          <circle cx="30" cy="51.5" r="1.5" fill="white" opacity="0.7" />
-                          {/* Left arm — static */}
-                          <rect x="3" y="42" width="9" height="5" rx="2.5" fill="#7C3AED" opacity="0.85" />
-                          <circle cx="2.5" cy="44.5" r="3" fill="#A855F7" opacity="0.7" />
-                          {/* Right arm — continuous wave */}
+                          <circle cx="20" cy="23.5" r="2.5" fill="#0a0020" opacity="0.9" />
+                          <circle cx="40" cy="23.5" r="2.5" fill="#0a0020" opacity="0.9" />
+                          <circle cx="21.5" cy="21.5" r="1.2" fill="white" opacity="1" />
+                          <circle cx="41.5" cy="21.5" r="1.2" fill="white" opacity="1" />
+                          <path d="M21 31 Q30 36 39 31" stroke="#00D4FF" strokeWidth="2" strokeLinecap="round" fill="none" filter="url(#glow)" />
+                          <rect x="26" y="37" width="8" height="4" rx="2" fill="#7C3AED" opacity="0.9" />
+                          <rect x="13" y="41" width="34" height="22" rx="8" fill="url(#bodyG)" stroke="#7C3AED" strokeWidth="1.5" />
+                          <rect x="20" y="46" width="20" height="11" rx="4" fill="#A855F7" opacity="0.2" stroke="#A855F7" strokeWidth="0.8" />
+                          <circle cx="30" cy="51.5" r="3.5" fill="#00D4FF" opacity="1" filter="url(#glow)" className="animate-pulse-dot" />
+                          <circle cx="30" cy="51.5" r="1.8" fill="white" opacity="0.9" />
+                          <rect x="3" y="42" width="9" height="5" rx="2.5" fill="#7C3AED" opacity="0.9" />
+                          <circle cx="2.5" cy="44.5" r="3" fill="#A855F7" opacity="0.8" />
                           <g className="animate-robot-wave" style={{ transformOrigin: '49px 43px' }}>
-                            <rect x="48" y="41" width="9" height="5" rx="2.5" fill="#A855F7" opacity="0.9" />
-                            <circle cx="58.5" cy="43.5" r="3.5" fill="#00D4FF" opacity="0.9" filter="url(#glow)" />
-                            {/* Little sparkle on hand */}
-                            <line x1="57" y1="41" x2="60" y2="38" stroke="#00D4FF" strokeWidth="0.8" opacity="0.6" />
-                            <line x1="60" y1="42" x2="63" y2="41" stroke="#00D4FF" strokeWidth="0.8" opacity="0.6" />
+                            <rect x="48" y="41" width="9" height="5" rx="2.5" fill="#A855F7" opacity="1" />
+                            <circle cx="58.5" cy="43.5" r="3.5" fill="#00D4FF" opacity="1" filter="url(#glow)" />
+                            <line x1="57" y1="41" x2="60" y2="38" stroke="#00D4FF" strokeWidth="1" opacity="0.8" />
+                            <line x1="60" y1="42" x2="63" y2="41" stroke="#00D4FF" strokeWidth="1" opacity="0.8" />
                           </g>
-                          {/* Legs */}
-                          <rect x="18" y="63" width="9" height="6" rx="3" fill="#7C3AED" opacity="0.85" />
-                          <rect x="33" y="63" width="9" height="6" rx="3" fill="#7C3AED" opacity="0.85" />
-                          {/* Feet */}
-                          <rect x="16" y="67" width="13" height="4" rx="2" fill="#A855F7" opacity="0.5" />
-                          <rect x="31" y="67" width="13" height="4" rx="2" fill="#A855F7" opacity="0.5" />
+                          <rect x="18" y="63" width="9" height="6" rx="3" fill="#7C3AED" opacity="0.9" />
+                          <rect x="33" y="63" width="9" height="6" rx="3" fill="#7C3AED" opacity="0.9" />
+                          <rect x="16" y="67" width="13" height="4" rx="2" fill="#A855F7" opacity="0.6" />
+                          <rect x="31" y="67" width="13" height="4" rx="2" fill="#A855F7" opacity="0.6" />
                         </svg>
+                        {/* Live dot */}
+                        <div className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#22D3EE] border-2 border-[#05050B] animate-pulse z-20" />
                       </div>
                     </div>
-
-                    {/* Gradient text */}
-                    <h2 className="animate-text-slide font-display font-bold text-[21px] sm:text-[25px] md:text-[31px] lg:text-[37px] bg-[linear-gradient(to_right,#A855F7,#7C3AED,#00D4FF)] bg-[length:200%_auto] bg-clip-text text-transparent animate-shimmer-bg drop-shadow-[0_0_12px_rgba(168,85,247,0.35)] tracking-tight leading-[1.15]">
+                    <h2 className="animate-text-slide font-display font-bold text-[22px] sm:text-[28px] md:text-[34px] bg-[linear-gradient(to_right,#C084FC,#A855F7,#00D4FF)] bg-[length:200%_auto] bg-clip-text text-transparent animate-shimmer-bg tracking-tight leading-[1.15]" style={{ filter: 'drop-shadow(0 0 16px rgba(168,85,247,0.9)) drop-shadow(0 2px 6px rgba(0,0,0,0.9))' }}>
                       Meet Your Smart AI Coach
                     </h2>
                   </div>
 
                   {/* Description Text */}
-                  <div className="font-body text-[15px] lg:text-[17px] text-[#AAB3C5] leading-[1.65] max-w-[480px] mb-8 mx-auto lg:mx-0 animate-fade-in-up-hero" style={{ animationDelay: '400ms' }}>
+                  <div className="font-body text-[16px] lg:text-[17px] text-[#C8D0E0] leading-[1.65] max-w-[480px] mb-8 animate-fade-in-up-hero" style={{ animationDelay: '400ms', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>
                     <p className="mb-2">Your body is unique. Your fitness plan should be too.<br />Let AI build your perfect roadmap.</p>
-                    <p className="text-white/90 font-medium">You’ve tried the trends. Now, try the truth.</p>
+                    <p className="text-white/90 font-medium">You've tried the trends. Now, try the truth.</p>
                   </div>
 
                   {/* CTA Button */}
-                  <div className="w-full max-w-[440px] mx-auto lg:mx-0 mb-6 animate-fade-in-up-hero" style={{ animationDelay: '500ms' }}>
+                  <div className="w-full max-w-[400px] mb-8 animate-fade-in-up-hero" style={{ animationDelay: '500ms' }}>
                     <button
                       onClick={handleStartQuiz}
-                      className="group relative w-full h-[56px] lg:h-[60px] rounded-2xl bg-[linear-gradient(135deg,#A855F7_0%,#7C3AED_50%,#00D4FF_100%)] bg-[length:200%_auto] border border-white/20 hover:bg-[position:-100%_0] transition-all duration-500 ease-out active:scale-95 flex items-center justify-center gap-2.5 overflow-hidden animate-pulse-glow"
+                      className="group relative w-full h-[60px] lg:h-[64px] rounded-2xl bg-[linear-gradient(135deg,#A855F7_0%,#7C3AED_50%,#00D4FF_100%)] bg-[length:200%_auto] border border-white/20 hover:bg-[position:-100%_0] transition-all duration-500 ease-out active:scale-95 flex items-center justify-center gap-2.5 overflow-hidden animate-pulse-glow shadow-[0_0_30px_rgba(168,85,247,0.4)]"
                     >
                       <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                       <div className="absolute top-0 left-[-100%] w-[50%] h-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-20deg] animate-shimmer pointer-events-none" />
-                      {/* Live blinking dot */}
                       <div className="w-[8px] h-[8px] rounded-full bg-white animate-blink-dot z-10 shrink-0" />
-                      <span className="font-display text-[16px] lg:text-[18px] font-bold text-white tracking-wide z-10 flex items-center gap-2">
-                        Start Free AI Analysis <ArrowRight size={20} className="text-white group-hover:translate-x-1 transition-transform" />
+                      <span className="font-display text-[18px] lg:text-[20px] font-bold text-white tracking-wide z-10 flex items-center gap-2">
+                        Start Free AI Analysis <ArrowRight size={22} className="text-white group-hover:translate-x-1 transition-transform" />
                       </span>
                     </button>
                   </div>
 
                   {/* Trust Line */}
-                  <div className="flex flex-col lg:flex-row justify-center lg:justify-start items-center gap-y-3 gap-x-5 mb-10 animate-fade-in-up-hero" style={{ animationDelay: '600ms' }}>
-                    {[
-                      "No credit card", "Takes only 60 seconds", "Trusted by influencers & celebrities"
-                    ].map((text, i) => (
+                  <div className="flex flex-wrap items-center gap-x-6 gap-y-3 mb-10 animate-fade-in-up-hero" style={{ animationDelay: '600ms' }}>
+                    {["No credit card", "Takes only 60 seconds", "Trusted by influencers & celebrities"].map((text, i) => (
                       <div key={i} className="flex items-center gap-2">
                         <CheckCircle2 size={16} className="text-[#22C55E]" />
-                        <span className="font-body text-[13px] md:text-[14px] font-medium text-white/[0.65]">{text}</span>
+                        <span className="font-body text-[13px] font-medium text-white">{text}</span>
                       </div>
                     ))}
                   </div>
 
-                  {/* Hologram - Mobile */}
-                  <div className="lg:hidden w-full flex items-center justify-center relative my-6 animate-fade-in-up-hero" style={{ animationDelay: '700ms' }}>
-                    <div className="relative w-[260px] h-[390px]">
-                      {/* Ambient matching glow to integrate the cyan hologram vibe */}
-                      <div className="absolute inset-[-10%] rounded-full bg-[#00D4FF]/10 blur-[60px] pointer-events-none" />
-                      
-                      {/* Body image */}
-                      <div className="absolute inset-0 flex items-center justify-center animate-xray-float" style={{ animationDuration: '8s' }}>
-                        <video
-                          src="/ai-hologram.gif..mp4"
-                          autoPlay
-                          loop
-                          muted
-                          playsInline
-                          className="w-full h-full object-contain select-none pointer-events-none"
-                          style={{ 
-                            mixBlendMode: 'screen',
-                            WebkitMaskImage: 'radial-gradient(ellipse 80% 90% at 50% 50%, black 40%, transparent 100%)',
-                            maskImage: 'radial-gradient(ellipse 80% 90% at 50% 50%, black 40%, transparent 100%)',
-                            filter: 'contrast(1.3) brightness(0.9) saturate(1.1)'
-                          }}
-                        />
+                  {/* Social Proof */}
+                  <div className="flex items-center gap-6 bg-white/[0.03] backdrop-blur-md border border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.5)] rounded-full px-[24px] py-[12px] animate-fade-in-up-hero w-fit" style={{ animationDelay: '700ms' }}>
+                    <div className="flex items-center gap-3">
+                      <div className="flex -space-x-2">
+                        {[1, 2, 3, 4].map((i) => (
+                          <div key={i} className="w-8 h-8 rounded-full bg-[#1A1D2D] border-2 border-[#05050B] flex items-center justify-center">
+                            <User size={12} className="text-white/50" />
+                          </div>
+                        ))}
                       </div>
-                      {/* Scan line */}
-                      <div className="absolute left-[-15%] right-[-15%] h-[2px] animate-xray-scan pointer-events-none" style={{ background: 'linear-gradient(90deg,transparent,#7c3aed,#a855f7,#c084fc,#a855f7,#7c3aed,transparent)', boxShadow: '0 0 18px #8B5CF6, 0 0 36px rgba(139,92,246,0.3)' }} />
-                      {/* HUD Labels */}
-                      <div className="absolute top-[18%] -left-[82px] flex items-center gap-1.5">
-                        <span className="font-mono text-[8px] font-bold tracking-[0.14em] animate-label" style={{ color: '#e879f9', textShadow: '0 0 8px #e879f9' }}>TRAPS</span>
-                        <div className="w-[26px] h-[1px]" style={{ background: 'linear-gradient(to right,rgba(232,121,249,0.7),rgba(232,121,249,0.1))' }} />
-                        <div className="w-[5px] h-[5px] rounded-full animate-muscle-a shrink-0" style={{ background: '#e879f9', boxShadow: '0 0 7px #e879f9' }} />
-                      </div>
-                      <div className="absolute top-[32%] -right-[78px] flex items-center gap-1.5">
-                        <div className="w-[5px] h-[5px] rounded-full animate-muscle-c shrink-0" style={{ background: '#FF00FF', boxShadow: '0 0 7px #FF00FF' }} />
-                        <div className="w-[22px] h-[1px]" style={{ background: 'linear-gradient(to left,rgba(255,0,255,0.7),rgba(255,0,255,0.1))' }} />
-                        <span className="font-mono text-[8px] font-bold tracking-[0.14em] animate-label" style={{ color: '#e879f9', textShadow: '0 0 8px #FF00FF' }}>CHEST</span>
-                      </div>
-                      <div className="absolute top-[52%] -left-[72px] flex items-center gap-1.5">
-                        <span className="font-mono text-[8px] font-bold tracking-[0.14em] animate-label" style={{ color: '#a78bfa', textShadow: '0 0 8px #a78bfa' }}>CORE</span>
-                        <div className="w-[20px] h-[1px]" style={{ background: 'linear-gradient(to right,rgba(167,139,250,0.7),rgba(167,139,250,0.1))' }} />
-                        <div className="w-[5px] h-[5px] rounded-full animate-muscle-d shrink-0" style={{ background: '#a78bfa', boxShadow: '0 0 7px #a78bfa' }} />
+                      <div>
+                        <div className="text-[#FBBF24] text-[12px] tracking-[2px]">★★★★★</div>
+                        <div className="font-body text-[11px] font-semibold text-white/80">50,000+ Transformed</div>
                       </div>
                     </div>
-                  </div>
-
-                  {/* Feature Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10 animate-fade-in-up-hero w-full max-w-[500px] mx-auto lg:mx-0" style={{ animationDelay: '800ms' }}>
-                    {[
-                      { icon: BrainCircuit, text: "AI Powered Personal Analysis" },
-                      { icon: ShieldCheck, text: "Privacy First, Always" },
-                      { icon: Target, text: "100% Plan Built For You" },
-                      { icon: TrendingDown, text: "Data-Driven Predictions" }
-                    ].map((feat, i) => (
-                      <div key={i} className="group flex items-center gap-3 bg-white/[0.02] backdrop-blur-md border border-white/10 rounded-2xl p-[16px] hover:-translate-y-1 hover:bg-[#A855F7]/[0.05] hover:border-[#A855F7]/[0.3] hover:shadow-[0_8px_20px_rgba(168,85,247,0.1)] transition-all duration-300 cursor-default">
-                        <div className="w-[36px] h-[36px] rounded-xl bg-gradient-to-br from-[#A855F7]/20 to-[#00D4FF]/20 flex items-center justify-center shrink-0 border border-white/5 group-hover:scale-110 transition-transform">
-                          <feat.icon size={18} className="text-[#00D4FF]" />
-                        </div>
-                        <span className="font-heading text-[13px] font-bold text-white/[0.85] leading-tight">{feat.text}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Social Proof / Rating Card */}
-                  <div className="flex flex-col sm:flex-row items-center justify-between bg-white/[0.03] backdrop-blur-md border border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] rounded-2xl p-[20px] animate-fade-in-up-hero w-full max-w-[500px] mx-auto lg:mx-0" style={{ animationDelay: '900ms' }}>
-                    <div className="flex flex-col gap-1 items-center sm:items-start text-center sm:text-left mb-4 sm:mb-0">
-                      <div className="text-[#FBBF24] text-[16px] tracking-[4px] mb-1">★★★★★</div>
-                      <div className="font-body text-[13px] font-semibold text-white/80">50,000+ Lives Transformed</div>
-                    </div>
-                    <div className="hidden sm:block w-[1px] h-[40px] bg-white/10 mx-4" />
-                    <div className="w-full h-[1px] bg-white/10 my-4 sm:hidden" />
-                    <div className="flex flex-col items-center sm:items-end gap-1 text-center sm:text-right">
-                      <div className="flex items-baseline gap-1">
-                        <span className="font-display text-[26px] font-extrabold text-white leading-none">4.9</span>
-                        <span className="font-body text-[14px] text-white/50 font-medium">/5</span>
-                      </div>
-                      <span className="font-body text-[12px] text-[#00D4FF] font-semibold uppercase tracking-wider">User Rating</span>
+                    <div className="w-[1px] h-[28px] bg-white/20" />
+                    <div>
+                      <span className="font-display text-[20px] font-extrabold text-white">4.9</span>
+                      <span className="font-body text-[11px] text-white/50 font-medium"> /5 Rating</span>
                     </div>
                   </div>
-
-
                 </div>
 
-                {/* RIGHT COLUMN - 3D BODY MODEL (Desktop) */}
-                <div className="hidden lg:flex w-[45%] items-center justify-center relative z-[10] min-h-[640px] animate-fade-in-up-hero" style={{ animationDelay: '550ms' }}>
-                  <div className="relative flex items-center justify-center w-full h-[640px]">
 
-                    {/* ── LEFT LABELS ── */}
-                    <div className="absolute left-0 top-0 h-full flex flex-col justify-around py-[70px] z-40 w-[100px]">
-                      {[
-                        { label: 'TRAPS',  color: '#e879f9', anim: 'animate-muscle-a' },
-                        { label: 'CHEST',  color: '#FF00FF', anim: 'animate-muscle-c' },
-                        { label: 'LATS',   color: '#c084fc', anim: 'animate-muscle-b' },
-                        { label: 'ABS',    color: '#a78bfa', anim: 'animate-muscle-d' },
-                        { label: 'QUADS',  color: '#8B5CF6', anim: 'animate-muscle-e' },
-                        { label: 'CALVES', color: '#c084fc', anim: 'animate-muscle-f' },
-                      ].map(({ label, color, anim }) => (
-                        <div key={label} className="flex items-center gap-2 justify-end group">
-                          <span className="font-mono text-[9px] font-bold tracking-[0.16em] animate-label transition-all" style={{ color, textShadow: `0 0 10px ${color}` }}>{label}</span>
-                          <div className="w-[28px] h-[1px]" style={{ background: `linear-gradient(to right,${color}90,${color}15)` }} />
-                          <div className={`w-[6px] h-[6px] rounded-full ${anim} shrink-0`} style={{ background: color, boxShadow: `0 0 8px ${color}, 0 0 16px ${color}60` }} />
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* ── CENTRAL HOLOGRAM ── */}
-                    <div className="relative w-[300px] h-[580px] mx-auto">
-                      {/* Ambient matching glow to integrate the cyan hologram vibe */}
-                      <div className="absolute inset-[-20%] rounded-full bg-[#00D4FF]/10 blur-[80px] pointer-events-none" />
-
-                      {/* Body image */}
-                      <div className="absolute inset-0 flex items-center justify-center animate-xray-float" style={{ animationDuration: '9s' }}>
-                        <video
-                          src="/ai-hologram.gif..mp4"
-                          autoPlay
-                          loop
-                          muted
-                          playsInline
-                          className="w-full h-full object-contain select-none pointer-events-none"
-                          style={{ 
-                            mixBlendMode: 'screen',
-                            WebkitMaskImage: 'radial-gradient(ellipse 80% 90% at 50% 50%, black 50%, transparent 100%)',
-                            maskImage: 'radial-gradient(ellipse 80% 90% at 50% 50%, black 50%, transparent 100%)',
-                            filter: 'contrast(1.3) brightness(0.9) saturate(1.1)'
-                          }}
-                        />
-                      </div>
-
-                      {/* Scan line */}
-                      <div className="absolute left-[-12%] right-[-12%] h-[3px] animate-xray-scan pointer-events-none" style={{ background: 'linear-gradient(90deg,transparent,#7c3aed,#a855f7,#c084fc,#a855f7,#7c3aed,transparent)', boxShadow: '0 0 24px #8B5CF6, 0 0 48px rgba(139,92,246,0.3)' }} />
-                    </div>
-
-                    {/* ── RIGHT LABELS ── */}
-                    <div className="absolute right-0 top-0 h-full flex flex-col justify-around py-[70px] z-40 w-[100px]">
-                      {[
-                        { label: 'BICEPS',  color: '#c084fc', anim: 'animate-muscle-b' },
-                        { label: 'DELTS',   color: '#a78bfa', anim: 'animate-muscle-a' },
-                        { label: 'CORE',    color: '#8B5CF6', anim: 'animate-muscle-d' },
-                        { label: 'GLUTES',  color: '#e879f9', anim: 'animate-muscle-c' },
-                        { label: 'HAMS',    color: '#a78bfa', anim: 'animate-muscle-e' },
-                        { label: 'TIBIAL',  color: '#c084fc', anim: 'animate-muscle-f' },
-                      ].map(({ label, color, anim }) => (
-                        <div key={label} className="flex items-center gap-2 justify-start group">
-                          <div className={`w-[6px] h-[6px] rounded-full ${anim} shrink-0`} style={{ background: color, boxShadow: `0 0 8px ${color}, 0 0 16px ${color}60` }} />
-                          <div className="w-[28px] h-[1px]" style={{ background: `linear-gradient(to left,${color}90,${color}15)` }} />
-                          <span className="font-mono text-[9px] font-bold tracking-[0.16em] animate-label" style={{ color, textShadow: `0 0 10px ${color}` }}>{label}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* ── HUD CARDS ── */}
-                    <div className="absolute top-[10px] left-[106px] bg-black/75 backdrop-blur-xl border border-[#8B5CF6]/30 rounded-2xl p-3.5 z-30 shadow-[0_0_30px_rgba(139,92,246,0.18)] w-[140px]">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[#e879f9] animate-muscle-a" />
-                        <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Metabolic Rate</span>
-                      </div>
-                      <p className="text-[22px] font-mono text-white font-bold leading-none">1,842</p>
-                      <p className="text-[9px] text-[#c084fc] mt-1 font-semibold flex items-center gap-1"><Activity size={9} /> ACTIVE SCAN</p>
-                    </div>
-
-                    <div className="absolute top-[10px] right-[106px] bg-black/75 backdrop-blur-xl border border-[#FF00FF]/18 rounded-2xl p-3.5 z-30 shadow-[0_0_30px_rgba(255,0,255,0.08)] w-[140px]">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Muscle Density</span>
-                        <TrendingUp size={11} className="text-[#e879f9]" />
-                      </div>
-                      <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                        <div className="h-full bg-gradient-to-r from-[#8B5CF6] to-[#FF00FF] rounded-full w-[78%]" style={{ boxShadow: '0 0 8px #8B5CF6' }} />
-                      </div>
-                      <div className="flex justify-between mt-1.5">
-                        <span className="text-[16px] font-mono text-white font-bold">78.4%</span>
-                        <span className="text-[9px] text-[#e879f9] font-bold">+1.2%</span>
-                      </div>
-                    </div>
-
-                    <div className="absolute bottom-[8px] left-[106px] bg-black/75 backdrop-blur-xl border border-[#c084fc]/22 rounded-2xl p-3.5 z-30 shadow-[0_0_24px_rgba(192,132,252,0.12)] w-[140px]">
-                      <div className="text-[9px] font-bold text-white/40 uppercase tracking-widest mb-1">Body Composition</div>
-                      <div className="flex items-end gap-1.5">
-                        <span className="text-[22px] font-mono text-white font-bold">14.2</span>
-                        <span className="text-[12px] text-[#c084fc] font-bold pb-0.5">BF%</span>
-                      </div>
-                      <div className="mt-1 text-[8px] text-[#FBBF24] flex items-center gap-1 font-bold">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[#FBBF24] animate-pulse" />PEAK ATHLETIC RANGE
-                      </div>
-                    </div>
-
-                    <div className="absolute bottom-[8px] right-[106px] bg-[#8B5CF6]/10 backdrop-blur-2xl border border-[#8B5CF6]/28 rounded-2xl p-4 z-30 shadow-[0_0_36px_rgba(139,92,246,0.18)] w-[140px]">
-                      <div className="text-[9px] font-bold text-[#c084fc] uppercase tracking-[0.18em] mb-1.5">30-Day Projection</div>
-                      <div className="flex items-center gap-2">
-                        <div className="text-[24px] font-mono text-white font-bold leading-none">-5.2<span className="text-[14px] opacity-50">kg</span></div>
-                        <div className="h-8 w-[1px] bg-[#8B5CF6]/30" />
-                        <div className="text-[9px] text-white/65 leading-tight font-medium">94%<br />Confidence</div>
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
               </div>
+
 
               {/* ── AI METRICS GRAPH STRIP ── */}
               <div className="w-full max-w-[1440px] mx-auto px-5 lg:px-[80px] mt-6 animate-fade-in-up-hero" style={{ animationDelay: '1100ms' }}>
@@ -1062,9 +962,9 @@ export default function AICoach() {
         {phase === "quiz" && (
           <motion.section
             key="quiz"
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.97 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="max-w-2xl mx-auto h-auto max-h-[85vh] mt-[100px] mb-10 flex flex-col bg-[#0B0E16]/90 backdrop-blur-xl rounded-[32px] border border-white/5 shadow-2xl relative"
+            className="max-w-2xl mx-auto w-full mt-[80px] sm:mt-[100px] mb-10 flex flex-col bg-[#0B0E16]/90 backdrop-blur-xl rounded-[24px] sm:rounded-[32px] border border-white/5 shadow-2xl relative overflow-hidden"
           >
             {/* Header with Progress Bar */}
             <div className="p-5 border-b border-white/5 bg-black/20 rounded-t-[32px]">
@@ -1100,8 +1000,8 @@ export default function AICoach() {
               </div>
             </div>
 
-            {/* Content Area */}
-            <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 scrollbar-hide pb-32">
+            {/* Content Area — scrollable on mobile */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8 pb-28">
               <AnimatePresence mode="wait">
 
                 {/* STEP 1: CLINICAL HEALTH SCAN */}
@@ -1187,22 +1087,29 @@ export default function AICoach() {
                       <p className="text-[#AAB3C5] text-sm">We need exact numbers for accurate macros.</p>
                     </div>
 
-                    <div className="space-y-5">
+                    <div className="space-y-4">
                       <div>
                         <label className="block text-xs font-bold text-[#6B6F9A] uppercase mb-2">Age (Years)</label>
-                        <input type="number" placeholder="e.g. 26" value={answers.age || ""} onChange={e => setAnswers({ ...answers, age: e.target.value })} className="w-full bg-[#1A1D2D] border border-white/10 rounded-xl p-4 text-white font-bold outline-none focus:border-[#A78BFA] transition-colors" />
+                        <input type="number" inputMode="numeric" placeholder="e.g. 26" value={answers.age || ""} onChange={e => { setAnswers({ ...answers, age: e.target.value }); setQuizError(""); }} className="w-full bg-[#1A1D2D] border border-white/10 rounded-xl p-3.5 sm:p-4 text-white font-bold outline-none focus:border-[#A78BFA] transition-colors text-base" />
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-3 sm:gap-4">
                         <div>
                           <label className="block text-xs font-bold text-[#6B6F9A] uppercase mb-2">Height (cm)</label>
-                          <input type="number" placeholder="e.g. 155" value={answers.height || ""} onChange={e => setAnswers({ ...answers, height: e.target.value })} className="w-full bg-[#1A1D2D] border border-white/10 rounded-xl p-4 text-white font-bold outline-none focus:border-[#A78BFA] transition-colors" />
+                          <input type="number" inputMode="numeric" placeholder="e.g. 170" value={answers.height || ""} onChange={e => { setAnswers({ ...answers, height: e.target.value }); setQuizError(""); }} className="w-full bg-[#1A1D2D] border border-white/10 rounded-xl p-3.5 sm:p-4 text-white font-bold outline-none focus:border-[#A78BFA] transition-colors text-base" />
                         </div>
                         <div>
                           <label className="block text-xs font-bold text-[#6B6F9A] uppercase mb-2">Weight (kg)</label>
-                          <input type="number" placeholder="e.g. 71" value={answers.weight || ""} onChange={e => setAnswers({ ...answers, weight: e.target.value })} className="w-full bg-[#1A1D2D] border border-white/10 rounded-xl p-4 text-white font-bold outline-none focus:border-[#A78BFA] transition-colors" />
+                          <input type="number" inputMode="numeric" placeholder="e.g. 71" value={answers.weight || ""} onChange={e => { setAnswers({ ...answers, weight: e.target.value }); setQuizError(""); }} className="w-full bg-[#1A1D2D] border border-white/10 rounded-xl p-3.5 sm:p-4 text-white font-bold outline-none focus:border-[#A78BFA] transition-colors text-base" />
                         </div>
                       </div>
                     </div>
+
+                    {/* Validation error */}
+                    {quizError && (
+                      <div className="flex items-center gap-2 text-[#FF2D6B] text-sm font-semibold bg-[#FF2D6B]/10 border border-[#FF2D6B]/20 rounded-xl px-4 py-2.5">
+                        <AlertTriangle className="w-4 h-4 shrink-0" /> {quizError}
+                      </div>
+                    )}
 
                     <div>
                       <h3 className="font-bold text-white mb-3 text-sm">Current Body Type</h3>
@@ -1320,8 +1227,23 @@ export default function AICoach() {
 
               <button
                 onClick={() => {
-                  if (quizStep < 4) setQuizStep(prev => prev + 1);
-                  else setPhase("analyzing");
+                  if (quizStep < 4) {
+                    // Validate Step 2 inputs
+                    if (quizStep === 2) {
+                      if (!answers.age || !answers.height || !answers.weight) {
+                        setQuizError("Please fill in Age, Height, and Weight to continue.");
+                        return;
+                      }
+                      const age = parseFloat(answers.age), h = parseFloat(answers.height), w = parseFloat(answers.weight);
+                      if (age < 10 || age > 100) { setQuizError("Age must be between 10 and 100."); return; }
+                      if (h < 100 || h > 250) { setQuizError("Height must be between 100 and 250 cm."); return; }
+                      if (w < 20 || w > 300) { setQuizError("Weight must be between 20 and 300 kg."); return; }
+                    }
+                    setQuizError("");
+                    setQuizStep(prev => prev + 1);
+                  } else {
+                    setPhase("analyzing");
+                  }
                 }}
                 className="relative group px-6 py-2.5 rounded-xl font-bold text-sm text-white overflow-hidden transition-all duration-300 hover:scale-[1.02] active:scale-95 shadow-[0_0_20px_rgba(167,139,250,0.3)] hover:shadow-[0_0_30px_rgba(167,139,250,0.6)]"
               >
@@ -1422,7 +1344,7 @@ export default function AICoach() {
               hidden: { opacity: 0, y: 30 },
               show: { opacity: 1, y: 0, transition: { staggerChildren: 0.2 } }
             }}
-            className="max-w-4xl mx-auto space-y-8 pt-24 md:pt-32 pb-24 relative px-4"
+            className="max-w-4xl mx-auto space-y-6 sm:space-y-8 pt-20 sm:pt-28 md:pt-32 pb-20 relative px-4 sm:px-6"
           >
             {/* Deep Space Radial Background */}
             <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#8B5CF6]/15 via-[#0B0E16] to-[#0B0E16] -z-10" />
@@ -1452,22 +1374,27 @@ export default function AICoach() {
               </p>
             </div>
 
-            {/* Stats Dashboard */}
-            <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }} className="grid grid-cols-2 md:grid-cols-5 gap-3">
-              {[
-                { label: "Age", val: `${answers.age || "26"} yrs`, icon: User },
-                { label: "Weight", val: `${answers.weight || "70"} kg`, icon: Target },
-                { label: "Height", val: `${answers.height || "160"} cm`, icon: Activity },
-                { label: "Calories", val: `~${answers.goal?.includes("Fat") ? "1650" : "2200"}`, icon: Flame, highlight: true },
-                { label: "Protein", val: `~${answers.goal?.includes("Muscle") ? "140" : "110"}g`, icon: Dumbbell, highlight: true }
-              ].map((stat, i) => (
-                <div key={i} className={`p-4 rounded-2xl border ${stat.highlight ? "bg-[#A78BFA]/10 border-[#A78BFA]/30 shadow-[0_0_20px_rgba(167,139,250,0.1)]" : "bg-[#1A1D2D] border-white/5"} flex flex-col items-center justify-center text-center`}>
-                  <stat.icon className={`w-5 h-5 mb-2 ${stat.highlight ? "text-[#A78BFA]" : "text-[#6B6F9A]"}`} />
-                  <p className="text-[10px] uppercase font-bold text-[#6B6F9A] tracking-wider mb-1">{stat.label}</p>
-                  <p className={`font-bold text-lg md:text-xl ${stat.highlight ? "text-[#A78BFA]" : "text-white"}`}>{stat.val}</p>
-                </div>
-              ))}
-            </motion.div>
+            {/* Stats Dashboard — Mifflin-St Jeor Calculated */}
+            {(() => {
+              const m = calcMacros(answers);
+              return (
+                <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }} className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                  {[
+                    { label: "Age",      val: `${answers.age    || "—"} yrs`, icon: User,     highlight: false },
+                    { label: "Weight",   val: `${answers.weight || "—"} kg`,  icon: Target,   highlight: false },
+                    { label: "Height",   val: `${answers.height || "—"} cm`,  icon: Activity, highlight: false },
+                    { label: "Calories", val: `${m.calories} kcal`,           icon: Flame,    highlight: true  },
+                    { label: "Protein",  val: `${m.protein}g`,                icon: Dumbbell, highlight: true  },
+                  ].map((stat, i) => (
+                    <div key={i} className={`p-4 rounded-2xl border ${stat.highlight ? "bg-[#A78BFA]/10 border-[#A78BFA]/30 shadow-[0_0_20px_rgba(167,139,250,0.1)]" : "bg-[#1A1D2D] border-white/5"} flex flex-col items-center justify-center text-center`}>
+                      <stat.icon className={`w-5 h-5 mb-2 ${stat.highlight ? "text-[#A78BFA]" : "text-[#6B6F9A]"}`} />
+                      <p className="text-[10px] uppercase font-bold text-[#6B6F9A] tracking-wider mb-1">{stat.label}</p>
+                      <p className={`font-bold text-base md:text-lg ${stat.highlight ? "text-[#A78BFA]" : "text-white"}`}>{stat.val}</p>
+                    </div>
+                  ))}
+                </motion.div>
+              );
+            })()}
 
             {/* Non-Negotiable Rules */}
             <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }} className="bg-[#0B0E16]/80 backdrop-blur-xl border border-[#FF2D6B]/30 rounded-3xl p-6 md:p-8 shadow-[0_0_30px_rgba(255,45,107,0.1)] relative overflow-hidden">
@@ -1498,160 +1425,68 @@ export default function AICoach() {
               </div>
             </motion.div>
 
-            {/* Daily Schedule Grid */}
-            {pathType !== "workout" && (
-              <>
-            <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }} className="space-y-6">
-              <h3 className="text-xl md:text-2xl font-bold text-white flex items-center gap-2"><Clock className="w-6 h-6 text-[#A78BFA]" /> Daily Schedule (Blueprint Unlocked)</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
-                {/* Morning Card */}
-                <div className="bg-[#1A1D2D]/80 border border-[#22D3A5]/30 rounded-3xl p-6 relative overflow-hidden group hover:border-[#22D3A5]/60 transition-colors">
-                  <div className="absolute top-0 left-0 w-1.5 h-full bg-[#22D3A5] shadow-[0_0_15px_rgba(34,211,165,0.5)]" />
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <p className="text-[#22D3A5] font-bold text-[10px] uppercase tracking-wider mb-1">6:30 - 7:00 AM</p>
-                      <h4 className="text-white font-bold text-lg md:text-xl">Morning Ritual (Empty Stomach)</h4>
-                    </div>
-                    <div className="w-10 h-10 rounded-full bg-[#22D3A5]/10 flex items-center justify-center shrink-0"><Droplets className="w-5 h-5 text-[#22D3A5]" /></div>
-                  </div>
-                  <ul className="space-y-3 mb-6">
-                    <li className="text-sm text-[#AAB3C5] flex items-start gap-3 leading-relaxed"><span className="text-[#22D3A5] font-bold mt-0.5">•</span> Warm water + Lemon squeeze + ACV (1 spoon)</li>
-                    <li className="text-sm text-[#AAB3C5] flex items-start gap-3 leading-relaxed"><span className="text-[#22D3A5] font-bold mt-0.5">•</span> {answers.conditions?.includes("Thyroid") ? "Take Thyroid medication first, wait 30 mins before anything" : "Soaked walnuts (2) and almonds (5) for healthy fats"}</li>
-                  </ul>
-                  <div className="bg-[#22D3A5]/10 border border-[#22D3A5]/20 rounded-xl p-4">
-                    <p className="text-[10px] font-black text-[#22D3A5] uppercase tracking-wider mb-1 flex items-center gap-1.5"><BrainCircuit className="w-3.5 h-3.5" /> Sandy's Tip</p>
-                    <p className="text-xs text-[#E2E8F0] font-medium leading-relaxed">Yeh drink insulin sensitivity aur digestion ke liye best morning start hai. Kabhi skip mat karna.</p>
-                  </div>
-                </div>
 
-                {/* Pre-Workout / Breakfast */}
-                <div className="bg-[#1A1D2D]/80 border border-[#FF2D6B]/30 rounded-3xl p-6 relative overflow-hidden group hover:border-[#FF2D6B]/60 transition-colors">
-                  <div className="absolute top-0 left-0 w-1.5 h-full bg-[#FF2D6B] shadow-[0_0_15px_rgba(255,45,107,0.5)]" />
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <p className="text-[#FF2D6B] font-bold text-[10px] uppercase tracking-wider mb-1">8:30 - 9:00 AM</p>
-                      <h4 className="text-white font-bold text-lg md:text-xl">Pre-Workout & Breakfast</h4>
-                    </div>
-                    <div className="w-10 h-10 rounded-full bg-[#FF2D6B]/10 flex items-center justify-center shrink-0"><Flame className="w-5 h-5 text-[#FF2D6B]" /></div>
-                  </div>
-                  <ul className="space-y-3 mb-6">
-                    <li className="text-sm text-[#AAB3C5] flex items-start gap-3 leading-relaxed"><span className="text-[#FF2D6B] font-bold mt-0.5">•</span> Black Coffee or Beetroot + Amla Juice</li>
-                    <li className="text-sm text-[#AAB3C5] flex items-start gap-3 leading-relaxed"><span className="text-[#FF2D6B] font-bold mt-0.5">•</span> {answers.dietType === "Veg" || answers.dietType === "Vegan" ? "Tofu (100g) + Papaya (150g)" : "3 Egg Whites + 1 Whole Egg + Watermelon"}</li>
-                  </ul>
-                  <div className="bg-[#FF2D6B]/10 border border-[#FF2D6B]/20 rounded-xl p-4">
-                    <p className="text-[10px] font-black text-[#FF2D6B] uppercase tracking-wider mb-1 flex items-center gap-1.5"><BrainCircuit className="w-3.5 h-3.5" /> Sandy's Tip</p>
-                    <p className="text-xs text-[#E2E8F0] font-medium leading-relaxed">Beetroot nitric oxide boost karta hai - gym performance aur fat burning dono improve hoti hai.</p>
-                  </div>
-                </div>
-
-                {/* Main Lunch */}
-                <div className="bg-[#1A1D2D]/80 border border-[#4DA3FF]/30 rounded-3xl p-6 relative overflow-hidden group hover:border-[#4DA3FF]/60 transition-colors">
-                  <div className="absolute top-0 left-0 w-1.5 h-full bg-[#4DA3FF] shadow-[0_0_15px_rgba(77,163,255,0.5)]" />
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <p className="text-[#4DA3FF] font-bold text-[10px] uppercase tracking-wider mb-1">1:30 - 2:00 PM</p>
-                      <h4 className="text-white font-bold text-lg md:text-xl">Main Lunch</h4>
-                    </div>
-                    <div className="w-10 h-10 rounded-full bg-[#4DA3FF]/10 flex items-center justify-center shrink-0"><Salad className="w-5 h-5 text-[#4DA3FF]" /></div>
-                  </div>
-                  <ul className="space-y-3 mb-6">
-                    <li className="text-sm text-[#AAB3C5] flex items-start gap-3 leading-relaxed"><span className="text-[#4DA3FF] font-bold mt-0.5">•</span> Rice (100g cooked) or 2 Multigrain Roti</li>
-                    <li className="text-sm text-[#AAB3C5] flex items-start gap-3 leading-relaxed"><span className="text-[#4DA3FF] font-bold mt-0.5">•</span> {answers.dietType === "Veg" ? "Dal (1 bowl) + Soya Chunks (40g)" : "Chicken Breast (100g) air-fried, minimal ghee"}</li>
-                    <li className="text-sm text-[#AAB3C5] flex items-start gap-3 leading-relaxed"><span className="text-[#4DA3FF] font-bold mt-0.5">•</span> Cucumber + Tomato + Lemon Salad (mandatory)</li>
-                  </ul>
-                  <div className="bg-[#4DA3FF]/10 border border-[#4DA3FF]/20 rounded-xl p-4">
-                    <p className="text-[10px] font-black text-[#4DA3FF] uppercase tracking-wider mb-1 flex items-center gap-1.5"><BrainCircuit className="w-3.5 h-3.5" /> Sandy's Tip</p>
-                    <p className="text-xs text-[#E2E8F0] font-medium leading-relaxed">Ek baar mein itna nahi khana isliye meals split kiye. Yeh protein hit metabolism ko active rakhega.</p>
-                  </div>
-                </div>
-
-                {/* Dinner & Before Bed */}
-                <div className="bg-[#1A1D2D]/80 border border-[#A78BFA]/30 rounded-3xl p-6 relative overflow-hidden group hover:border-[#A78BFA]/60 transition-colors">
-                  <div className="absolute top-0 left-0 w-1.5 h-full bg-[#A78BFA] shadow-[0_0_15px_rgba(167,139,250,0.5)]" />
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <p className="text-[#A78BFA] font-bold text-[10px] uppercase tracking-wider mb-1">8:00 - 10:00 PM</p>
-                      <h4 className="text-white font-bold text-lg md:text-xl">Dinner & Before Bed</h4>
-                    </div>
-                    <div className="w-10 h-10 rounded-full bg-[#A78BFA]/10 flex items-center justify-center shrink-0"><Moon className="w-5 h-5 text-[#A78BFA]" /></div>
-                  </div>
-                  <ul className="space-y-3 mb-6">
-                    <li className="text-sm text-[#AAB3C5] flex items-start gap-3 leading-relaxed"><span className="text-[#A78BFA] font-bold mt-0.5">•</span> Dinner: {answers.dietType === "Veg" ? "Besan Chilla + Tofu stuffing" : "Fish/Chicken Tikka + Mixed Veggies"}</li>
-                    <li className="text-sm text-[#AAB3C5] flex items-start gap-3 leading-relaxed"><span className="text-[#A78BFA] font-bold mt-0.5">•</span> 30 min post-dinner walk (10k steps complete karo)</li>
-                    <li className="text-sm text-[#AAB3C5] flex items-start gap-3 leading-relaxed"><span className="text-[#A78BFA] font-bold mt-0.5">•</span> Bedtime: Flaxseed powder (1 tsp) + Lukewarm Water</li>
-                  </ul>
-                  <div className="bg-[#A78BFA]/10 border border-[#A78BFA]/20 rounded-xl p-4">
-                    <p className="text-[10px] font-black text-[#A78BFA] uppercase tracking-wider mb-1 flex items-center gap-1.5"><BrainCircuit className="w-3.5 h-3.5" /> Sandy's Tip</p>
-                    <p className="text-xs text-[#E2E8F0] font-medium leading-relaxed">Isabgol ya Flaxseed = overnight gut cleansing. Subah fresh feel aayega guaranteed.</p>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Daily Macros Footer */}
-            <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }} className="bg-[#05050B] border border-white/10 rounded-3xl p-6 md:p-8 flex flex-wrap gap-6 md:gap-10 items-center justify-center relative overflow-hidden shadow-2xl">
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 via-blue-500/5 to-green-500/5" />
-              <h3 className="w-full text-center text-[10px] md:text-xs font-black text-[#6B6F9A] uppercase tracking-[0.2em] mb-2 relative z-10">Daily Macros Requirement</h3>
-              
-              <div className="flex items-center gap-3 relative z-10">
-                <div className="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center"><Flame className="w-6 h-6 text-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.8)]" /></div>
-                <div><p className="text-[10px] text-[#AAB3C5] uppercase font-bold tracking-wider">Calories</p><p className="font-bold text-white text-lg">~{answers.goal?.includes("Fat") ? "1650" : "2200"} kcal</p></div>
-              </div>
-              <div className="w-px h-10 bg-white/10 hidden md:block relative z-10" />
-              
-              <div className="flex items-center gap-3 relative z-10">
-                <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center"><Dumbbell className="w-6 h-6 text-blue-500 drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]" /></div>
-                <div><p className="text-[10px] text-[#AAB3C5] uppercase font-bold tracking-wider">Protein</p><p className="font-bold text-white text-lg">~{answers.goal?.includes("Muscle") ? "140" : "110"}g</p></div>
-              </div>
-              <div className="w-px h-10 bg-white/10 hidden md:block relative z-10" />
-              
-              <div className="flex items-center gap-3 relative z-10">
-                <div className="w-12 h-12 rounded-full bg-yellow-500/10 flex items-center justify-center"><Activity className="w-6 h-6 text-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.8)]" /></div>
-                <div><p className="text-[10px] text-[#AAB3C5] uppercase font-bold tracking-wider">Carbs</p><p className="font-bold text-white text-lg">~140g</p></div>
-              </div>
-              <div className="w-px h-10 bg-white/10 hidden md:block relative z-10" />
-              
-              <div className="flex items-center gap-3 relative z-10">
-                <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center"><Target className="w-6 h-6 text-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]" /></div>
-                <div><p className="text-[10px] text-[#AAB3C5] uppercase font-bold tracking-wider">Fats</p><p className="font-bold text-white text-lg">~55g</p></div>
-              </div>
-            </motion.div>
-            </>
-            )}
 
             {/* AI Generated Response */}
             {aiResponse && (
-              <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }} className="bg-[#0B0E16]/80 backdrop-blur-xl border border-[#A78BFA]/30 rounded-3xl p-6 md:p-8 shadow-[0_0_30px_rgba(167,139,250,0.1)] relative overflow-hidden mt-8">
+              <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }} className="bg-[#0B0E16]/80 backdrop-blur-xl border border-[#A78BFA]/30 rounded-3xl p-6 md:p-8 shadow-[0_0_30px_rgba(167,139,250,0.1)] relative mt-8">
+                
+                {/* Cyber Scanner Overlay (Refining State) */}
+                <AnimatePresence>
+                  {isRefining && (
+                    <motion.div 
+                      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                      className="absolute inset-0 z-30 bg-[#08050F]/70 backdrop-blur-[2px] flex flex-col items-center justify-center rounded-3xl overflow-hidden border-2 border-[#00D4FF]/50 shadow-[inset_0_0_100px_rgba(0,212,255,0.1)]"
+                    >
+                      <div className="absolute inset-0 animate-scan-line border-b-2 border-[#00D4FF] shadow-[0_0_30px_#00D4FF] bg-gradient-to-t from-[#00D4FF]/20 to-transparent h-[150px]" />
+                      <BrainCircuit className="w-16 h-16 text-[#00D4FF] animate-pulse mb-4 drop-shadow-[0_0_15px_rgba(0,212,255,0.8)]" />
+                      <p className="font-mono text-base md:text-lg text-white font-bold tracking-[0.2em] animate-pulse">RECALCULATING BLUEPRINT...</p>
+                      <p className="text-xs text-[#00D4FF]/80 mt-2 tracking-widest uppercase">Applying new parameters</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
                 <h3 className="text-xl md:text-2xl font-bold text-white flex items-center gap-2 mb-6"><BrainCircuit className="w-6 h-6 text-[#A78BFA]" /> Your Custom Plan from AI Coach</h3>
-                <div className="text-[#AAB3C5] font-body text-sm md:text-base whitespace-pre-wrap leading-relaxed max-h-[500px] overflow-y-auto pr-4 mb-6" style={{ scrollbarWidth: 'thin', scrollbarColor: '#A78BFA transparent' }}>
-                  {aiResponse}
+                <div className="max-h-[600px] overflow-y-auto pr-2 mb-6 relative z-10" style={{ scrollbarWidth: 'thin', scrollbarColor: '#A78BFA transparent' }}>
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      h1: ({node, ...p}) => <h1 {...p} className="text-2xl font-black text-white mt-6 mb-3 tracking-tight" />,
+                      h2: ({node, ...p}) => <h2 {...p} className="text-xl font-bold text-[#a78bfa] mt-5 mb-2 border-b border-[#a78bfa]/20 pb-1" />,
+                      h3: ({node, ...p}) => <h3 {...p} className="text-base font-bold text-white mt-4 mb-2" />,
+                      p:  ({node, ...p}) => <p  {...p} className="text-[#AAB3C5] text-sm leading-relaxed mb-3" />,
+                      ul: ({node, ...p}) => <ul {...p} className="space-y-1.5 mb-4 pl-4" />,
+                      ol: ({node, ...p}) => <ol {...p} className="space-y-1.5 mb-4 pl-4 list-decimal" />,
+                      li: ({node, ...p}) => <li {...p} className="text-[#AAB3C5] text-sm flex gap-2"><span className="text-[#a78bfa] mt-0.5 shrink-0">▸</span><span>{(p as any).children}</span></li>,
+                      strong: ({node, ...p}) => <strong {...p} className="text-white font-bold" />,
+                      code: ({node, ...p}) => <code {...p} className="bg-[#1a1d2d] text-[#c084fc] px-1.5 py-0.5 rounded text-xs font-mono" />,
+                      blockquote: ({node, ...p}) => {
+                        const isWarning = p.children?.toString().includes("NETWORK CONGESTION");
+                        return (
+                          <blockquote {...p} className={`border-l-4 pl-4 my-4 p-3 rounded-r-lg text-sm ${isWarning ? 'border-orange-500 bg-orange-500/10 text-orange-200' : 'border-[#a78bfa]/50 text-[#8B92A5] italic'}`} />
+                        );
+                      },
+                      table: ({node, ...p}) => <div className="overflow-x-auto mb-4"><table {...p} className="w-full text-sm border-collapse" /></div>,
+                      th: ({node, ...p}) => <th {...p} className="text-left p-2 text-[#a78bfa] font-bold text-xs uppercase border-b border-white/10" />,
+                      td: ({node, ...p}) => <td {...p} className="p-2 text-[#AAB3C5] text-sm border-b border-white/5" />,
+                    }}
+                  >
+                    {aiResponse}
+                  </ReactMarkdown>
                 </div>
                 
-                {/* Refinement Chat */}
-                <div className="border-t border-white/10 pt-6 mt-2">
-                  <p className="text-xs text-[#AAB3C5] mb-3 font-bold uppercase tracking-wider flex items-center gap-2">
-                    <MessageSquare className="w-4 h-4 text-[#A78BFA]" /> Not satisfied? Refine your plan
-                  </p>
-                  <div className="flex gap-3">
-                    <input 
-                      type="text" 
-                      value={refineInput}
-                      onChange={(e) => setRefineInput(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleRefine()}
-                      placeholder="E.g., 'Make it 3 days a week' or 'I want more arms focus'..." 
-                      className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#A78BFA]/50 transition-colors"
-                      disabled={isRefining}
-                    />
-                    <button 
-                      onClick={handleRefine}
-                      disabled={isRefining || !refineInput.trim()}
-                      className="bg-[#A78BFA] hover:bg-[#8B5CF6] disabled:opacity-50 text-white rounded-xl px-6 py-3 font-bold text-sm transition-colors flex items-center justify-center min-w-[120px]"
-                    >
-                      {isRefining ? <RefreshCw className="w-5 h-5 animate-spin" /> : "Update AI"}
-                    </button>
+                {/* Refinement Chat Command Center */}
+                <div className="mt-8 pt-6 relative z-20 before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-8 h-8 rounded-full bg-[#A78BFA]/10 flex items-center justify-center border border-[#A78BFA]/30">
+                      <MessageSquare className="w-4 h-4 text-[#A78BFA]" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-white font-bold uppercase tracking-wider">AI Command Center</p>
+                      <p className="text-[10px] text-[#AAB3C5]">Not satisfied? Request modifications below</p>
+                    </div>
                   </div>
+                  <RefinementInput isRefining={isRefining} onRefine={handleRefine} />
                 </div>
               </motion.div>
             )}
