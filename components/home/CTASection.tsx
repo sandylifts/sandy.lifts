@@ -8,7 +8,7 @@ export function CTASection() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
-      className="flex flex-col items-center lg:items-start gap-5 mt-6 w-full"
+      className="flex flex-col items-center lg:items-start gap-5 mt-2 w-full"
     >
       <p className="text-[1.05rem] font-semibold tracking-wide bg-gradient-to-r from-[#4DA3FF] to-[#66E6FF] bg-clip-text text-transparent text-center lg:text-left">
         No guesswork. No confusion. SIRF RESULTS.
@@ -17,7 +17,7 @@ export function CTASection() {
       <motion.div
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        className="relative w-full sm:w-auto group mt-2 mb-2"
+        className="relative w-full sm:w-auto group mt-2"
       >
         {/* Breathing Glow Effect */}
         <motion.div
@@ -56,13 +56,17 @@ export function CTASection() {
         </Link>
       </motion.div>
       
-      <div className="flex flex-col gap-2 mt-2 text-[0.9rem] text-[#AAB3C5]/90 items-center lg:items-start pl-0 lg:pl-1">
+      <div className="flex flex-col gap-2.5 mt-0 text-[0.85rem] text-[#AAB3C5]/90 items-center lg:items-start pl-0 lg:pl-1">
         <div className="flex items-center gap-2.5">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-[#4DA3FF] opacity-90"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <motion.div animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="#4DA3FF" className="drop-shadow-[0_0_6px_rgba(77,163,255,0.8)]"><polygon points="12 2 15 10 23 12 15 14 12 22 9 14 1 12 9 10 12 2" /></svg>
+          </motion.div>
           <span>Free plan. No signup required</span>
         </div>
         <div className="flex items-center gap-2.5">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-[#4DA3FF] opacity-90"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <motion.div animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="#4DA3FF" className="drop-shadow-[0_0_6px_rgba(77,163,255,0.8)]"><polygon points="12 2 15 10 23 12 15 14 12 22 9 14 1 12 9 10 12 2" /></svg>
+          </motion.div>
           <span>Built from real transformation experience</span>
         </div>
       </div>

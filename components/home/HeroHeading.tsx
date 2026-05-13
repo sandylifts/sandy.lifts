@@ -27,10 +27,10 @@ export function HeroHeading() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
-        className="text-[clamp(1rem,1.5vw,1.15rem)] text-[#AAB3C5] leading-relaxed max-w-[480px] mt-2"
+        className="text-[clamp(1rem,1.5vw,1.15rem)] text-[#AAB3C5] font-semibold leading-relaxed max-w-[480px] mt-2"
       >
-        Most people don&apos;t fail because they&apos;re lazy…<br />
-        they fail because they don&apos;t know what actually works.
+        You show up. We take care of the rest.<br />
+        We don&apos;t just guide — we take responsibility for your transformation.
       </motion.p>
     </div>
   );

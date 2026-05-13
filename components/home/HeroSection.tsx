@@ -1,45 +1,21 @@
 "use client";
-import { useEffect, useRef, useState, useCallback } from "react";
-import { useMotionValue } from "framer-motion";
+import { useEffect, useState } from "react";
 import ParticleField from "./particle-field";
-import LogoShowcase from "./logo-showcase";
+import HeroVisual from "../features/hero/HeroVisual";
 
 import { HeroHeading } from "./HeroHeading";
 import { ProblemSlider } from "./ProblemSlider";
 import { CTASection } from "./CTASection";
 
 export function HeroSection() {
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
   const [mounted, setMounted] = useState(false);
-  const [slideIndex, setSlideIndex] = useState(0);
-  const heroRef = useRef<HTMLElement>(null);
-
-  const advanceSlide = useCallback(() => {
-    setSlideIndex((prev) => (prev + 1) % 2); // 2 slides in LogoShowcase
-  }, []);
-
-  useEffect(() => {
-    const id = setInterval(advanceSlide, 8000);
-    return () => clearInterval(id);
-  }, [advanceSlide]);
 
   useEffect(() => {
     setMounted(true);
-    const el = heroRef.current;
-    if (!el) return;
-    const onMove = (e: MouseEvent) => {
-      const rect = el.getBoundingClientRect();
-      mouseX.set(e.clientX - rect.left - rect.width / 2);
-      mouseY.set(e.clientY - rect.top - rect.height / 2);
-    };
-    el.addEventListener("mousemove", onMove);
-    return () => el.removeEventListener("mousemove", onMove);
-  }, [mouseX, mouseY]);
+  }, []);
 
   return (
     <section
-      ref={heroRef}
       aria-label="Hero section"
       className="relative flex flex-col min-h-[100svh] overflow-hidden bg-[#07090D]"
     >
@@ -62,7 +38,7 @@ export function HeroSection() {
           {/* LEFT: Heading, Slider, CTA, Icons */}
           <div className="flex-1 flex flex-col w-full text-center lg:text-left items-center lg:items-start max-w-2xl z-20">
             <HeroHeading />
-            <div className="w-full mt-10 mb-8">
+            <div className="w-full mt-10 mb-2">
               <ProblemSlider />
             </div>
             <CTASection />
@@ -71,13 +47,8 @@ export function HeroSection() {
           </div>
 
           {/* RIGHT: Photo */}
-          <div className="flex-1 w-full flex flex-col items-center lg:items-end justify-center relative mt-16 lg:mt-0 z-10 lg:min-h-[600px]">
-            
-            {/* The Photo */}
-            <div className="w-full max-w-[340px] sm:max-w-[420px] lg:max-w-[540px] relative z-20 lg:absolute lg:right-0 lg:top-1/2 lg:-translate-y-1/2">
-              <LogoShowcase mouseX={mouseX} mouseY={mouseY} slideIndex={slideIndex} />
-            </div>
-
+          <div className="hidden lg:flex flex-1 items-center justify-end w-full relative z-10">
+            <HeroVisual />
           </div>
 
         </div>

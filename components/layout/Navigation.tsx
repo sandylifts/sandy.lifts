@@ -79,8 +79,8 @@ export function Navigation() {
             borderRadius: "16px",
             backdropFilter: "blur(20px)",
             WebkitBackdropFilter: "blur(20px)",
-            background: "rgba(7,9,13,0.80)",
-            border: scrolled ? "1px solid rgba(77,163,255,0.35)" : "1px solid rgba(77,163,255,0.15)",
+            background: "rgba(255, 255, 255, 0.05)",
+            border: scrolled ? "1px solid rgba(255,255,255,0.15)" : "1px solid rgba(255,255,255,0.05)",
             boxShadow: scrolled
               ? "0 0 30px rgba(77,163,255,0.12), inset 0 1px 0 rgba(77,163,255,0.08)"
               : "0 0 15px rgba(77,163,255,0.05)",
@@ -183,7 +183,7 @@ export function Navigation() {
                       padding: "6px 14px",
                       borderRadius: "10px",
                       textDecoration: "none",
-                      fontSize: "0.875rem",
+                      fontSize: "0.9rem",
                       fontWeight: active ? 600 : 500,
                       color: active ? "#F5F7FA" : "#AAB3C5",
                       transition: "color 0.2s ease",
@@ -333,7 +333,7 @@ export function Navigation() {
               transition={{ duration: 0.2 }}
               onClick={() => setMobileOpen(false)}
               aria-hidden="true"
-              style={{ position: "fixed", inset: 0, zIndex: 40, background: "rgba(5,5,11,0.82)", backdropFilter: "blur(4px)" }}
+              style={{ position: "fixed", inset: 0, zIndex: 40, background: "rgba(5,5,11,0.4)", backdropFilter: "blur(12px)" }}
             />
 
             <motion.div
@@ -344,7 +344,7 @@ export function Navigation() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -16, scale: 0.96 }}
               transition={{ duration: 0.22, ease: "easeOut" }}
-              style={{ position: "fixed", top: "68px", left: "12px", right: "12px", zIndex: 50, borderRadius: "16px", overflow: "hidden", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", background: "rgba(7,9,13,0.96)", border: "1px solid rgba(77,163,255,0.25)", boxShadow: "0 0 40px rgba(77,163,255,0.1), 0 20px 60px rgba(0,0,0,0.7)" }}
+              style={{ position: "fixed", top: "68px", left: "12px", right: "12px", zIndex: 50, borderRadius: "16px", overflow: "hidden", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", background: "rgba(255, 255, 255, 0.05)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 0 40px rgba(0,0,0,0.5)" }}
             >
               <ul role="list" style={{ padding: "8px", margin: 0, listStyle: "none" }}>
                 {NAV_LINKS.map(({ label, href, icon: Icon, badge }, i) => {
@@ -358,7 +358,7 @@ export function Navigation() {
                       <Link
                         href={href}
                         onClick={() => setMobileOpen(false)}
-                        style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 14px", borderRadius: "12px", textDecoration: "none", fontSize: "0.9rem", fontWeight: 500, color: active ? "#F5F7FA" : "#AAB3C5", background: active ? "rgba(77,163,255,0.08)" : "transparent", border: active ? "1px solid rgba(77,163,255,0.2)" : "1px solid transparent", transition: "all 0.2s ease", marginBottom: "2px" }}
+                        style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 14px", borderRadius: "12px", textDecoration: "none", fontSize: "0.95rem", fontWeight: 500, color: active ? "#F5F7FA" : "#AAB3C5", background: active ? "rgba(77,163,255,0.08)" : "transparent", border: active ? "1px solid rgba(77,163,255,0.2)" : "1px solid transparent", transition: "all 0.2s ease", marginBottom: "2px" }}
                       >
                         <span style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "28px", height: "28px", borderRadius: "8px", background: active ? "rgba(77,163,255,0.15)" : "rgba(255,255,255,0.04)", color: active ? "#4DA3FF" : "#6B7280", flexShrink: 0 }}>
                           <Icon size={14} />
