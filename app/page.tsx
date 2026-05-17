@@ -1,14 +1,10 @@
 import type { Metadata } from "next";
 import { HeroSection } from "@/components/home/HeroSection";
-import { FeaturesGrid } from "@/components/home/FeaturesGrid";
-import { ToolsPreview } from "@/components/home/ToolsPreview";
-import { AIPreview } from "@/components/home/AIPreview";
 import { WhySection } from "@/components/features/WhySection";
-import { InsuranceWidget } from "@/components/insurance/InsuranceWidget";
-import { CommunityPreview } from "@/components/home/CommunityPreview";
-import { TrustEcosystem } from "@/components/home/TrustEcosystem";
-import { MythTicker } from "@/components/home/MythTicker";
-import { EnergyCheckIn } from "@/components/home/EnergyCheckIn";
+import { TransformationSection } from "@/components/home/TransformationSection";
+import { TestimonialSection } from "@/components/home/TestimonialSection";
+import { TeamSection } from "@/components/home/TeamSection";
+import { SandyShieldSection } from "@/components/home/SandyShieldSection";
 
 export const metadata: Metadata = {
   title: "Sandy.Lifts — Your Premium Fitness Hub",
@@ -20,14 +16,10 @@ export default function HomePage() {
     <div>
       <HeroSection />
       <WhySection />
-      <MythTicker />
-      <EnergyCheckIn />
-      <TrustEcosystem />
-      <FeaturesGrid />
-      <ToolsPreview />
-      <AIPreview />
-      <CommunityPreview />
-      <InsuranceWidget />
+      <TransformationSection />
+      <TestimonialSection />
+      <TeamSection />
+      <SandyShieldSection />
     </div>
   );
 }

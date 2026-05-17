@@ -19,43 +19,27 @@ export function CTASection() {
         whileTap={{ scale: 0.95 }}
         className="relative w-full sm:w-auto group mt-2"
       >
-        {/* Breathing Glow Effect */}
         <motion.div
-          animate={{
-            opacity: [0.5, 0.8, 0.5],
-            scale: [0.95, 1.05, 0.95],
-          }}
-          transition={{
-            duration: 3,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
+          animate={{ opacity: [0.5, 0.8, 0.5], scale: [0.95, 1.05, 0.95] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
           className="absolute inset-0 rounded-full bg-gradient-to-r from-[#4DA3FF] via-[#A78BFA] to-[#66E6FF] blur-xl opacity-60 group-hover:opacity-100 transition-opacity duration-300"
         />
-
-        <Link 
-          href="/tools" 
+        <Link
+          href="/get-started"
           className="relative inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-[#4DA3FF] via-[#5BA4FF] to-[#66E6FF] text-[#07090D] rounded-full font-bold text-[1.1rem] w-full sm:w-auto overflow-hidden shadow-[inset_0_1px_1px_rgba(255,255,255,0.5)] border border-white/20"
         >
-          {/* Continuous Shimmer Animation */}
           <motion.div
             animate={{ x: ["-200%", "200%"] }}
-            transition={{
-              duration: 2.5,
-              repeat: Infinity,
-              ease: "easeInOut",
-              repeatDelay: 1.5,
-            }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", repeatDelay: 1.5 }}
             className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent skew-x-12 pointer-events-none"
           />
-
           <span className="relative z-10 flex items-center gap-2 drop-shadow-sm">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>
             Start Your Transformation
           </span>
         </Link>
       </motion.div>
-      
+
       <div className="flex flex-col gap-2.5 mt-0 text-[0.85rem] text-[#AAB3C5]/90 items-center lg:items-start pl-0 lg:pl-1">
         <div className="flex items-center gap-2.5">
           <motion.div animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}>

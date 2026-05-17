@@ -192,6 +192,7 @@ function TeamCard({ member }: { member: TeamMember }) {
 
   return (
     <div
+      id={member.id}
       ref={ref}
       className="team-card-wrapper"
       style={{
@@ -404,24 +405,24 @@ export default function AboutPage() {
     },
     {
       id: "sid",
-      name: "SID",
+      name: "Sayed Gulam Hussain",
       role: "Digital Marketing Manager",
       description:
-        "Sid is the Digital Marketing Manager and one of the best in his field, known for his creative vision, strategic thinking, and impactful execution. He plays a key role in building the platform's digital presence, audience growth, creative positioning, social visibility, and online reach. He helps shape how the brand connects with people and expands its impact in the digital world.",
+        "Sayed is the Digital Marketing Manager and one of the best in his field, known for his creative vision, strategic thinking, and impactful execution. He plays a key role in building the platform's digital presence, audience growth, creative positioning, social visibility, and online reach. He helps shape how the brand connects with people and expands its impact in the digital world.",
       transformation:
-        "Sid lost around 30 kg during his prime and now maintains a strong, disciplined physique while living in Dubai and managing a professional career. His journey reflects consistency, self-improvement, and the same transformation mindset Sandy.Lifts stands for.",
+        "Sayed lost around 30 kg during his prime and now maintains a strong, disciplined physique while living in Dubai and managing a professional career. His journey reflects consistency, self-improvement, and the same transformation mindset Sandy.Lifts stands for.",
       highlights: ["Brand Growth Strategy", "Digital Marketing", "Social Positioning", "Creative Direction", "Audience Engagement"],
-      note: "Sid brings both professional marketing expertise and personal transformation credibility to the Sandy.Lifts mission.",
+      note: "Sayed brings both professional marketing expertise and personal transformation credibility to the Sandy.Lifts mission.",
       image: sidImg.src,
       accentColor: "123, 111, 255",
       delay: 100,
     },
     {
       id: "himanshu",
-      name: "Himanshu Kumar",
+      name: "Himanshu Pal",
       role: "Senior Software Engineer",
       description:
-        "Himanshu Kumar is a Senior Software Engineer and one of the best in his field, recognized for his technical excellence, problem-solving ability, and dependable development work. He is responsible for building, structuring, optimizing, and maintaining the website experience so that the platform feels fast, modern, functional, and user-friendly.",
+        "Himanshu Pal is a Senior Software Engineer and one of the best in his field, recognized for his technical excellence, problem-solving ability, and dependable development work. He is responsible for building, structuring, optimizing, and maintaining the website experience so that the platform feels fast, modern, functional, and user-friendly.",
       transformation:
         "Himanshu reduced around 10 kg of fat and maintains a strong physique while living in Dubai and managing a professional career. His journey reflects balance, consistency, and the ability to build both body and career with discipline.",
       highlights: ["Full Stack Development", "Frontend & Backend", "Performance Optimization", "Technical Problem Solving", "Platform Maintenance"],

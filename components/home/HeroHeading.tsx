@@ -27,10 +27,13 @@ export function HeroHeading() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
-        className="text-[clamp(1rem,1.5vw,1.15rem)] text-[#AAB3C5] font-semibold leading-relaxed max-w-[480px] mt-2"
+        className="flex flex-col gap-0.5 text-[clamp(1rem,1.5vw,1.18rem)] font-semibold leading-snug max-w-[480px] mt-2"
       >
-        You show up. We take care of the rest.<br />
-        We don&apos;t just guide — we take responsibility for your transformation.
+        <span className="text-[#6B7A96]">Most people work hard.</span>
+        <span className="bg-gradient-to-r from-[#4DA3FF] via-[#66E6FF] to-[#A78BFA] bg-clip-text text-transparent font-extrabold text-[clamp(1.15rem,1.9vw,1.45rem)] tracking-tight">
+          The top 1% work smart —
+        </span>
+        <span className="text-[#AAB3C5]">with a system built for their body.</span>
       </motion.p>
     </div>
   );
