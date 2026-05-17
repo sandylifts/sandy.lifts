@@ -1,6 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { BeforeAfterSlider } from "./BeforeAfterSlider";
@@ -16,11 +17,33 @@ const TRANSFORMATIONS = [
     afterImg: "/TRANSFORMATONS/client1-after.jpg",
     quote: "Ghar pe rehke bhi results mile — koi gym nahi, sirf system.",
   },
+  {
+    name: "Client A.",
+    beforeWeight: "115 kg",
+    afterWeight: "88 kg",
+    lost: "27 KG",
+    duration: "9 Months",
+    beforeImg: "/TRANSFORMATONS/clientbefore2.JPG",
+    afterImg: "/TRANSFORMATONS/clientafter2.png",
+    quote: "Bhai confidence hi alag level par hai ab. Transformation is real.",
+  },
 ];
 
 export function TransformationSection() {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const t = TRANSFORMATIONS[currentIndex];
+
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev === TRANSFORMATIONS.length - 1 ? 0 : prev + 1));
+  };
+
+  const handlePrev = () => {
+    setCurrentIndex((prev) => (prev === 0 ? TRANSFORMATIONS.length - 1 : prev - 1));
+  };
+
   return (
-    <section className="relative w-full pt-16 pb-24 bg-[#000000] overflow-hidden">
+    <section className="relative w-full pt-4 pb-8 bg-[#000000] overflow-hidden">
       <style>{`
         @keyframes shimmer {
           0% { transform: translateX(-100%); }
@@ -90,16 +113,16 @@ export function TransformationSection() {
           </div>
         </motion.div>
 
-        {/* Cards */}
-        <div className="flex flex-col gap-8 items-center">
-          {TRANSFORMATIONS.map((t, i) => (
+        {/* Carousel Container */}
+        <div className="flex flex-col items-center">
+          <AnimatePresence mode="wait">
             <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: i * 0.1 }}
-              className="w-full max-w-[860px]"
+              key={currentIndex}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+              className="w-full max-w-[480px] sm:max-w-[540px]"
             >
               <div
                 className="relative rounded-2xl overflow-hidden border border-[rgba(255,255,255,0.08)]"
@@ -121,10 +144,10 @@ export function TransformationSection() {
                   style={{ background: "rgba(7,9,13,0.95)" }}
                 >
                   {/* Left: stats */}
-                  <div className="flex items-center gap-6 flex-wrap">
+                  <div className="flex items-center gap-4 sm:gap-6 flex-wrap">
                     <div className="flex flex-col">
                       <span
-                        className="text-[28px] font-black leading-none"
+                        className="text-[24px] sm:text-[28px] font-black leading-none"
                         style={{
                           background: "linear-gradient(90deg, #4DA3FF, #A78BFA)",
                           WebkitBackgroundClip: "text",
@@ -135,59 +158,82 @@ export function TransformationSection() {
                       </span>
                       <span className="text-[10px] text-[#52525B] font-bold uppercase tracking-wider mt-0.5">Lost</span>
                     </div>
-                    <div className="w-[1px] h-10 bg-[rgba(255,255,255,0.07)]" />
+                    <div className="w-[1px] h-8 sm:h-10 bg-[rgba(255,255,255,0.07)]" />
                     <div className="flex flex-col">
-                      <span className="text-[15px] font-bold text-white">{t.duration}</span>
+                      <span className="text-[14px] sm:text-[15px] font-bold text-white">{t.duration}</span>
                       <span className="text-[10px] text-[#52525B] font-bold uppercase tracking-wider mt-0.5">Timeline</span>
-                    </div>
-                    <div className="w-[1px] h-10 bg-[rgba(255,255,255,0.07)]" />
-                    <div className="flex flex-col max-w-[200px]">
-                      <span className="text-[12px] text-[#A1A1AA] italic leading-snug">"{t.quote}"</span>
-                      <span className="text-[10px] text-[#52525B] font-bold uppercase tracking-wider mt-1">— {t.name}</span>
                     </div>
                   </div>
 
-                  {/* Right: Sandy.Lifts watermark */}
-                  <div className="flex items-center gap-1.5 flex-shrink-0">
-                    <span
-                      className="text-[13px] font-black tracking-wide"
-                      style={{
-                        background: "linear-gradient(90deg, #4DA3FF, #66E6FF)",
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                      }}
-                    >
-                      Sandy.Lifts
-                    </span>
-                    <span className="text-[10px] text-[#3F3F46]">✓ Verified</span>
+                  {/* Quote and Watermark Area */}
+                  <div className="flex items-center justify-between gap-4 w-full pt-4 mt-2 border-t border-[rgba(255,255,255,0.04)]">
+                    <div className="flex flex-col max-w-[70%]">
+                      <span className="text-[12px] text-[#A1A1AA] italic leading-snug">"{t.quote}"</span>
+                      <span className="text-[10px] text-[#52525B] font-bold uppercase tracking-wider mt-1">— {t.name}</span>
+                    </div>
+
+                    <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                      <span
+                        className="text-[11px] sm:text-[13px] font-black tracking-wide"
+                        style={{
+                          background: "linear-gradient(90deg, #4DA3FF, #66E6FF)",
+                          WebkitBackgroundClip: "text",
+                          WebkitTextFillColor: "transparent",
+                        }}
+                      >
+                        Sandy.Lifts
+                      </span>
+                      <span className="text-[9px] sm:text-[10px] text-[#3F3F46]">✓ Verified</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </motion.div>
-          ))}
+          </AnimatePresence>
+
+          {/* Navigation Controls */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="flex items-center gap-6 mt-8"
+          >
+            <button 
+              onClick={handlePrev}
+              className="w-12 h-12 flex items-center justify-center rounded-full border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.02)] hover:bg-[rgba(255,255,255,0.08)] transition-all group"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" className="group-hover:stroke-[#4DA3FF] transition-colors" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+
+            {/* Dots */}
+            <div className="flex gap-3">
+              {TRANSFORMATIONS.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentIndex(i)}
+                  className={`h-2.5 rounded-full transition-all duration-300 ${
+                    i === currentIndex 
+                      ? "w-8 bg-gradient-to-r from-[#4DA3FF] to-[#A78BFA]" 
+                      : "w-2.5 bg-[rgba(255,255,255,0.15)] hover:bg-[rgba(255,255,255,0.3)]"
+                  }`}
+                />
+              ))}
+            </div>
+
+            <button 
+              onClick={handleNext}
+              className="w-12 h-12 flex items-center justify-center rounded-full border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.02)] hover:bg-[rgba(255,255,255,0.08)] transition-all group"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" className="group-hover:stroke-[#4DA3FF] transition-colors" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </button>
+          </motion.div>
         </div>
 
-        {/* CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="flex flex-col items-center mt-14 gap-4"
-        >
-          <p className="text-[13px] text-[#52525B] text-center">Teri transformation next ho sakti hai.</p>
-          <Link
-            href="/get-started"
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-bold text-[1rem] text-[#07090D]"
-            style={{
-              background: "linear-gradient(90deg, #4DA3FF, #66E6FF)",
-              boxShadow: "0 0 30px rgba(77,163,255,0.3)",
-            }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>
-            Start Your Transformation
-          </Link>
-        </motion.div>
+
 
       </div>
     </section>

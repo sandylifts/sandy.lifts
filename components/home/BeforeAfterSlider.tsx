@@ -57,7 +57,7 @@ export function BeforeAfterSlider({
 
   return (
     <div 
-      className="relative w-full aspect-[3/4] sm:aspect-[4/3] overflow-hidden group select-none touch-none"
+      className="relative w-full aspect-[3/4] sm:aspect-[4/5] overflow-hidden group select-none touch-none"
       ref={containerRef}
       onPointerDown={(e) => {
         setIsDragging(true);
@@ -154,14 +154,24 @@ export function BeforeAfterSlider({
         </div>
       </div>
 
-      {/* Face blur overlay with instructional text */}
+      {/* Face blur overlay with premium instructional badge */}
       <div 
         className="absolute top-0 left-0 right-0 z-40 pointer-events-none flex items-center justify-center" 
-        style={{ height: "16%", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", background: "rgba(0,0,0,0.15)" }}
+        style={{ height: "20%", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", background: "rgba(0,0,0,0.15)" }}
       >
-        <span className="text-[12px] font-bold tracking-widest text-[#FFFFFF] uppercase opacity-80" style={{ textShadow: "0 2px 4px rgba(0,0,0,0.5)" }}>
-          👈 Swipe to see results 👉
-        </span>
+        <div className="flex items-center gap-3 px-4 py-1.5 rounded-full border border-[rgba(255,255,255,0.1)] bg-[rgba(0,0,0,0.4)] shadow-[0_0_20px_rgba(77,163,255,0.15)] animate-pulse backdrop-blur-md">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4DA3FF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-80">
+            <path d="M15 18l6-6-6-6" />
+            <path d="M9 18l-6-6 6-6" />
+          </svg>
+          <span className="text-[9px] font-black tracking-[0.25em] text-[#E2E8F0] uppercase mt-[1px]">
+            Swipe to Compare
+          </span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-80">
+            <path d="M9 18l6-6-6-6" />
+            <path d="M15 18l6-6-6-6" />
+          </svg>
+        </div>
       </div>
     </div>
   );

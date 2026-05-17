@@ -125,6 +125,11 @@ function Card({ card, i, isMobile }: { card: typeof CARDS[0]; i: number; isMobil
           }}
         />
 
+        {/* Bottom Flowing Glow Line — same as Team Section */}
+        <div
+          className="why-card-glow-line absolute bottom-0 left-0 w-full h-[1px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-b-2xl z-10"
+        />
+
         {/* Core System badge */}
         {card.isHero && (
           <div className="absolute -top-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-[rgba(168,85,247,0.15)] border border-[rgba(168,85,247,0.3)] rounded-full px-3 py-1 backdrop-blur-md">
@@ -195,6 +200,15 @@ export function WhySection() {
           background: linear-gradient(180deg, transparent, #22D3EE, #A855F7, transparent);
           background-size: 100% 200%;
           animation: flowGlowVertical 3s infinite linear;
+        }
+        @keyframes whyCardFlowGlow {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+        .why-card-glow-line {
+          background: linear-gradient(90deg, transparent, #22D3EE, #A855F7, transparent);
+          background-size: 200% 100%;
+          animation: whyCardFlowGlow 3s infinite linear;
         }
         .text-gradient-primary {
           background: linear-gradient(90deg, #22D3EE 0%, #67B7F7 30%, #A78BFA 65%, #A855F7 100%);

@@ -4,14 +4,14 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence, useMotionValue, useSpring } from "framer-motion";
-import { Home, Bot, Wrench, Users, Info, Menu, X } from "lucide-react";
+import { Home, Bot, Wrench, Users, Info, Menu, X, Shield } from "lucide-react";
 
 const NAV_LINKS = [
-  { label: "Home",     href: "/",         icon: Home,   badge: null  },
-  { label: "AI Coach", href: "/ai-coach", icon: Bot,    badge: "NEW" },
-  { label: "Toolkit",  href: "/tools",    icon: Wrench, badge: null  },
-  { label: "Why Join", href: "/about",    icon: Users,  badge: null  },
-  { label: "About",    href: "/about",    icon: Info,   badge: null  },
+  { label: "Home",         href: "/",              icon: Home,    badge: null      },
+  { label: "AI Coach",     href: "/ai-coach",      icon: Bot,     badge: "NEW"     },
+  { label: "Sandy Shield", href: "/sandy-shield",  icon: Shield,  badge: "PROTECT" },
+  { label: "Toolkit",      href: "/tools",         icon: Wrench,  badge: null      },
+  { label: "About",        href: "/about",         icon: Info,    badge: null      },
 ] as const;
 
 export function Navigation() {
@@ -45,6 +45,16 @@ export function Navigation() {
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
+
+  // Direct DOM dock scale — bypasses React re-render for zero-delay response
+  const applyDockScale = (hoveredI: number | null) => {
+    itemRefs.current.forEach((el, j) => {
+      if (!el) return;
+      if (hoveredI === null) { el.style.transform = "scale(1)"; return; }
+      const dist = Math.abs(j - hoveredI);
+      el.style.transform = dist === 0 ? "scale(1.18)" : dist === 1 ? "scale(0.92)" : "scale(0.86)";
+    });
+  };
 
   // Recompute line relative to linksRef container
   const moveLine = (el: HTMLAnchorElement | null) => {
@@ -154,7 +164,7 @@ export function Navigation() {
             <div
               ref={linksRef}
               style={{ display: "flex", alignItems: "center", gap: "4px", position: "relative" }}
-              onMouseLeave={() => setHoveredIdx(null)}
+              onMouseLeave={() => { setHoveredIdx(null); applyDockScale(null); }}
             >
               {/* ── Magic sliding underline ── */}
               <motion.div
@@ -179,7 +189,7 @@ export function Navigation() {
                     key={label}
                     href={href}
                     ref={(el) => { itemRefs.current[i] = el; }}
-                    onMouseEnter={() => setHoveredIdx(i)}
+                    onMouseEnter={() => { setHoveredIdx(i); applyDockScale(i); }}
                     style={{
                       position: "relative",
                       display: "inline-flex",
@@ -191,7 +201,7 @@ export function Navigation() {
                       fontSize: "0.9rem",
                       fontWeight: active ? 600 : 500,
                       color: active ? "#F5F7FA" : "#AAB3C5",
-                      transition: "color 0.2s ease",
+                      transition: "color 0.2s ease, transform 0.3s cubic-bezier(0.34,1.56,0.64,1)",
                       whiteSpace: "nowrap",
                     }}
                     className="sl-nav-item"
@@ -214,6 +224,24 @@ export function Navigation() {
                       }}>
                         <span style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#66E6FF", display: "inline-block", flexShrink: 0, boxShadow: "0 0 4px rgba(102,230,255,0.8)" }} />
                         <span className="sl-new-text">NEW</span>
+                      </span>
+                    )}
+                    {badge === "PROTECT" && (
+                      <span className="sl-protect-badge" style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "3px",
+                        padding: "2px 8px",
+                        borderRadius: "999px",
+                        fontSize: "0.52rem",
+                        fontWeight: 700,
+                        letterSpacing: "0.12em",
+                        textTransform: "uppercase",
+                        border: "1px solid rgba(245,158,11,0.55)",
+                        background: "linear-gradient(135deg, rgba(245,158,11,0.18) 0%, rgba(252,211,77,0.08) 100%)",
+                      }}>
+                        <span style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#F59E0B", display: "inline-block", flexShrink: 0, boxShadow: "0 0 6px rgba(245,158,11,1), 0 0 10px rgba(245,158,11,0.6)" }} />
+                        <span className="sl-protect-text">PROTECT</span>
                       </span>
                     )}
                   </Link>
@@ -283,12 +311,25 @@ export function Navigation() {
           >
             {/* Instagram */}
             <a
-              href="#"
+              href="https://www.instagram.com/oye_vilen01/"
+              target="_blank"
+              rel="noopener noreferrer"
               aria-label="Sandy.Lifts on Instagram"
               className="sl-pill-btn sl-social-ig"
-              style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "28px", height: "28px", borderRadius: "8px", textDecoration: "none", transition: "all 0.2s ease", flexShrink: 0 }}
+              onClick={(e) => {
+                e.preventDefault();
+                let appOpened = false;
+                const onHide = () => { appOpened = true; document.removeEventListener("visibilitychange", onHide); };
+                document.addEventListener("visibilitychange", onHide);
+                window.location.href = "instagram://user?username=oye_vilen01";
+                setTimeout(() => {
+                  document.removeEventListener("visibilitychange", onHide);
+                  if (!appOpened) window.open("https://www.instagram.com/oye_vilen01/", "_blank");
+                }, 1200);
+              }}
+              style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "34px", height: "34px", borderRadius: "9px", textDecoration: "none", transition: "all 0.25s cubic-bezier(0.34,1.56,0.64,1)", flexShrink: 0 }}
             >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <defs>
                   <linearGradient id="ig-g" x1="0%" y1="100%" x2="100%" y2="0%">
                     <stop offset="0%" stopColor="#FCAF45"/>
@@ -309,9 +350,9 @@ export function Navigation() {
               rel="noopener noreferrer"
               aria-label="Chat with Sandy.Lifts on WhatsApp"
               className="sl-pill-btn sl-social-wa"
-              style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "28px", height: "28px", borderRadius: "8px", textDecoration: "none", transition: "all 0.2s ease", flexShrink: 0 }}
+              style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "34px", height: "34px", borderRadius: "9px", textDecoration: "none", transition: "all 0.25s cubic-bezier(0.34,1.56,0.64,1)", flexShrink: 0 }}
             >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="#25D366" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="#25D366" aria-hidden="true">
                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
               </svg>
             </a>
@@ -351,8 +392,46 @@ export function Navigation() {
           0%, 100% { opacity: 1; text-shadow: 0 0 8px rgba(102,230,255,0.9), 0 0 16px rgba(77,163,255,0.7); }
           50%       { opacity: 0.25; text-shadow: none; }
         }
+        @keyframes protect-float {
+          0%   { transform: perspective(280px) rotateX(0deg)  rotateY(0deg)   translateY(0px);   }
+          25%  { transform: perspective(280px) rotateX(6deg)  rotateY(-10deg) translateY(-1.5px); }
+          50%  { transform: perspective(280px) rotateX(-4deg) rotateY(10deg)  translateY(-2.5px); }
+          75%  { transform: perspective(280px) rotateX(5deg)  rotateY(-6deg)  translateY(-1px);  }
+          100% { transform: perspective(280px) rotateX(0deg)  rotateY(0deg)   translateY(0px);   }
+        }
+        @keyframes protect-glow {
+          0%, 100% { box-shadow: 0 0 8px rgba(245,158,11,0.35), 0 0 18px rgba(245,158,11,0.12), 0 3px 10px rgba(0,0,0,0.5); }
+          50%       { box-shadow: 0 0 18px rgba(245,158,11,0.7), 0 0 36px rgba(245,158,11,0.25), 0 5px 16px rgba(0,0,0,0.6); }
+        }
+        @keyframes protect-shine {
+          0%   { transform: translateX(-130%) skewX(-22deg); opacity: 0;   }
+          15%  { opacity: 0.9; }
+          85%  { opacity: 0.9; }
+          100% { transform: translateX(260%)  skewX(-22deg); opacity: 0;   }
+        }
+        .sl-protect-badge {
+          animation: protect-float 4s ease-in-out infinite, protect-glow 2.5s ease-in-out infinite;
+          transform-style: preserve-3d;
+          position: relative;
+          overflow: hidden;
+        }
+        .sl-protect-badge::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.55) 50%, transparent 70%);
+          animation: protect-shine 3s ease-in-out infinite;
+          pointer-events: none;
+          border-radius: 999px;
+        }
         .sl-new-text {
           background: linear-gradient(135deg, #4DA3FF 0%, #66E6FF 50%, #A78BFA 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        .sl-protect-text {
+          background: linear-gradient(135deg, #F59E0B 0%, #FCD34D 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
@@ -379,11 +458,11 @@ export function Navigation() {
           transform: translateY(-1px) scale(1.04);
         }
         /* Pill buttons inside unified control strip */
-        .sl-pill-btn { border-radius: 10px; }
-        .sl-pill-btn:hover { background: rgba(255,255,255,0.1) !important; }
-        .sl-social-ig.sl-pill-btn:hover { background: rgba(225,48,108,0.15) !important; }
-        .sl-social-wa.sl-pill-btn:hover { background: rgba(37,211,102,0.15) !important; }
-        .sl-hamburger.sl-pill-btn:hover { background: rgba(77,163,255,0.15) !important; color: #F5F7FA !important; }
+        .sl-pill-btn { border-radius: 10px; transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1); }
+        .sl-pill-btn:hover { background: rgba(255,255,255,0.1) !important; transform: scale(1.22); }
+        .sl-social-ig.sl-pill-btn:hover { background: rgba(225,48,108,0.15) !important; transform: scale(1.22); }
+        .sl-social-wa.sl-pill-btn:hover { background: rgba(37,211,102,0.15) !important; transform: scale(1.22); }
+        .sl-hamburger.sl-pill-btn:hover { background: rgba(77,163,255,0.15) !important; color: #F5F7FA !important; transform: scale(1.15); }
 
         /* Drawer nav item hover */
         .sl-drawer-item:hover {
@@ -392,7 +471,7 @@ export function Navigation() {
           border-color: rgba(255,255,255,0.08) !important;
         }
         /* Drawer social pills */
-        .sl-drawer-social:hover { opacity: 0.85; transform: translateY(-1px); }
+        .sl-drawer-social:hover { opacity: 0.9; transform: scale(1.08) translateY(-2px); transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1); }
         .sl-drawer-social.sl-social-ig:hover { background: rgba(193,53,132,0.16) !important; border-color: rgba(193,53,132,0.4) !important; }
         .sl-drawer-social.sl-social-yt:hover { background: rgba(255,0,0,0.16) !important; border-color: rgba(255,0,0,0.4) !important; }
         .sl-drawer-social.sl-social-wa:hover { background: rgba(37,211,102,0.16) !important; border-color: rgba(37,211,102,0.4) !important; }
@@ -498,6 +577,12 @@ export function Navigation() {
                             NEW
                           </span>
                         )}
+                        {badge === "PROTECT" && (
+                          <span className="sl-protect-badge" style={{ display: "inline-flex", alignItems: "center", gap: "3px", padding: "2px 8px", borderRadius: "999px", fontSize: "0.52rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase" as const, background: "linear-gradient(135deg, rgba(245,158,11,0.18) 0%, rgba(252,211,77,0.08) 100%)", border: "1px solid rgba(245,158,11,0.55)", flexShrink: 0 }}>
+                            <span style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#F59E0B", display: "inline-block", boxShadow: "0 0 6px rgba(245,158,11,1)" }} />
+                            <span className="sl-protect-text">PROTECT</span>
+                          </span>
+                        )}
                       </Link>
                     </motion.li>
                   );
@@ -516,9 +601,22 @@ export function Navigation() {
                   style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}
                 >
                   <a
-                    href="#"
+                    href="https://www.instagram.com/oye_vilen01/"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     aria-label="Sandy.Lifts on Instagram"
                     className="sl-drawer-social sl-social-ig"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      let appOpened = false;
+                      const onHide = () => { appOpened = true; document.removeEventListener("visibilitychange", onHide); };
+                      document.addEventListener("visibilitychange", onHide);
+                      window.location.href = "instagram://user?username=oye_vilen01";
+                      setTimeout(() => {
+                        document.removeEventListener("visibilitychange", onHide);
+                        if (!appOpened) window.open("https://www.instagram.com/oye_vilen01/", "_blank");
+                      }, 1200);
+                    }}
                     style={{ display: "flex", alignItems: "center", gap: "7px", padding: "8px 14px", borderRadius: "10px", textDecoration: "none", fontSize: "0.78rem", fontWeight: 500, color: "#C13584", background: "rgba(193,53,132,0.08)", border: "1px solid rgba(193,53,132,0.2)", transition: "all 0.2s ease" }}
                   >
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
