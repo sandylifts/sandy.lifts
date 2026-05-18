@@ -4,6 +4,7 @@ import { WhySection } from "@/components/features/WhySection";
 import { TransformationSection } from "@/components/home/TransformationSection";
 import { TestimonialSection } from "@/components/home/TestimonialSection";
 import { TeamSection } from "@/components/home/TeamSection";
+import { PlanSection } from "@/components/home/PlanSection";
 import { SandyShieldSection } from "@/components/home/SandyShieldSection";
 
 export const metadata: Metadata = {
@@ -19,6 +20,7 @@ export default function HomePage() {
       <TransformationSection />
       <TestimonialSection />
       <TeamSection />
+      <PlanSection />
       <SandyShieldSection />
     </div>
   );

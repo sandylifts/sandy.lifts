@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { motion } from "framer-motion";
 
 const TOOLS = [
   { label: "Macro Calculator", href: "/tools/macro-calculator" },
@@ -28,9 +27,7 @@ const SOCIALS = [
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <defs>
           <linearGradient id="footer-ig" x1="0%" y1="100%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#FCAF45"/>
-            <stop offset="40%" stopColor="#E1306C"/>
-            <stop offset="100%" stopColor="#C13584"/>
+            <stop offset="0%" stopColor="#FCAF45"/><stop offset="40%" stopColor="#E1306C"/><stop offset="100%" stopColor="#C13584"/>
           </linearGradient>
         </defs>
         <rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="url(#footer-ig)"/>
@@ -66,175 +63,84 @@ export function Footer() {
   return (
     <footer className="relative w-full bg-[#000000] overflow-hidden">
       <style>{`
-        .footer-link {
-          display: block;
-          font-size: 13px;
-          color: #8B909E;
-          text-decoration: none;
-          padding: 5px 0;
-          transition: color 0.2s ease;
-          font-weight: 500;
-        }
-        .footer-link:hover { color: #F5F7FA; }
-        .footer-social-btn {
-          display: flex; align-items: center; justify-content: center;
-          width: 38px; height: 38px; border-radius: 10px;
-          border: 1px solid rgba(255,255,255,0.08);
-          background: rgba(255,255,255,0.03);
-          transition: all 0.2s ease; cursor: pointer; text-decoration: none;
-        }
-        .footer-social-btn:hover { border-color: rgba(255,255,255,0.16); transform: translateY(-2px); }
+        .footer-link { display:block; font-size:13px; color:#8B909E; text-decoration:none; padding:5px 0; transition:color 0.2s ease; font-weight:500; }
+        .footer-link:hover { color:#F5F7FA; }
+        .footer-social-btn { display:flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:10px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.03); transition:all 0.2s ease; cursor:pointer; text-decoration:none; }
+        .footer-social-btn:hover { border-color:rgba(255,255,255,0.16); transform:translateY(-2px); }
       `}</style>
 
       {/* Top rainbow divider */}
       <div className="w-full h-[1px]" style={{ background: "linear-gradient(90deg, transparent 0%, #4DA3FF 20%, #A78BFA 50%, #66E6FF 80%, transparent 100%)", opacity: 0.5 }} />
 
-      {/* Big CTA strip */}
-      <div className="relative border-b border-[rgba(255,255,255,0.05)]">
-        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 100% at 50% 50%, rgba(77,163,255,0.06) 0%, transparent 70%)" }} />
-        <div className="max-w-[1280px] mx-auto px-6 py-14 flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
-          <div className="text-center md:text-left">
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-[11px] font-bold tracking-[0.25em] text-[#4DA3FF] uppercase mb-3"
-            >
-              Ready to transform?
-            </motion.p>
-            <motion.h2
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-              className="font-black text-white leading-tight"
-              style={{ fontSize: "clamp(22px, 3.5vw, 38px)" }}
-            >
-              Your 1% journey{" "}
-              <span style={{ background: "linear-gradient(90deg, #4DA3FF, #A78BFA)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                starts today.
-              </span>
-            </motion.h2>
-          </div>
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.15 }}
-          >
-            <Link
-              href="/get-started"
-              className="relative inline-flex items-center gap-2.5 px-8 py-4 rounded-full font-bold text-[#07090D] text-[0.95rem] overflow-hidden"
-              style={{ background: "linear-gradient(90deg, #4DA3FF, #66E6FF)", boxShadow: "0 0 30px rgba(77,163,255,0.3)" }}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>
-              Start Your Transformation
-            </Link>
-          </motion.div>
-        </div>
-      </div>
-
       {/* Main footer grid */}
       <div className="max-w-[1280px] mx-auto px-6 pt-14 pb-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-14">
-
-          {/* Brand */}
           <div className="lg:col-span-1">
-            {/* Logo + Name inline */}
-            <Link href="/" className="flex items-center gap-3 mb-5" style={{ textDecoration: "none" }}>
-              <div className="relative w-[52px] h-[52px] shrink-0" style={{ filter: "drop-shadow(0 0 14px rgba(167,139,250,0.4))" }}>
-                <Image
-                  src="/sandy-lifts-logo.jpg"
-                  alt="Sandy.Lifts"
-                  fill
-                  sizes="52px"
-                  style={{ objectFit: "contain", borderRadius: "12px" }}
-                />
+            <Link href="/" className="flex items-center gap-3 mb-5" style={{ textDecoration:"none" }}>
+              <div className="relative w-[52px] h-[52px] shrink-0" style={{ filter:"drop-shadow(0 0 14px rgba(167,139,250,0.4))" }}>
+                <Image src="/sandy-lifts-logo.jpg" alt="Sandy.Lifts" fill sizes="52px" style={{ objectFit:"contain", borderRadius:"12px" }} />
               </div>
-              <span style={{ fontWeight: 900, fontSize: "1.2rem", background: "linear-gradient(135deg, #4DA3FF, #A78BFA)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              <span style={{ fontWeight:900, fontSize:"1.2rem", background:"linear-gradient(135deg,#4DA3FF,#A78BFA)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>
                 Sandy.Lifts
               </span>
             </Link>
-
-            {/* Vision statement */}
-            <p className="text-[9px] font-black tracking-[0.22em] uppercase mb-2" style={{ color: "#A78BFA" }}>
-              Our Vision
-            </p>
-            <p className="text-[15px] font-black text-white leading-snug mb-3">
-              Not a plan. A lifestyle.
-            </p>
-            <p className="text-[13px] leading-[1.75] mb-6" style={{ color: "#8B909E", maxWidth: "215px" }}>
+            <p className="text-[9px] font-black tracking-[0.22em] uppercase mb-2" style={{ color:"#A78BFA" }}>Our Vision</p>
+            <p className="text-[15px] font-black text-white leading-snug mb-3">Not a plan. A lifestyle.</p>
+            <p className="text-[13px] leading-[1.75] mb-6" style={{ color:"#8B909E", maxWidth:"215px" }}>
               We help you capture your best version — simple meals, smart training, zero extra tasks. Not a temporary habit. Your peak, permanently.
             </p>
-            {/* Socials */}
             <div className="flex items-center gap-2.5">
-              {SOCIALS.map((s) => (
-                <a
-                  key={s.label}
-                  href={s.href}
-                  aria-label={s.label}
+              {SOCIALS.map(s => (
+                <a key={s.label} href={s.href} aria-label={s.label}
                   target={s.href.startsWith("http") ? "_blank" : undefined}
                   rel={s.href.startsWith("http") ? "noopener noreferrer" : undefined}
                   className="footer-social-btn"
                   onMouseEnter={e => (e.currentTarget.style.background = s.hoverBg)}
-                  onMouseLeave={e => (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}
-                >
+                  onMouseLeave={e => (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}>
                   {s.icon}
                 </a>
               ))}
             </div>
           </div>
 
-          {/* Tools */}
           <div>
-            <h4 className="text-[11px] font-black tracking-[0.2em] uppercase mb-5" style={{ color: "#4DA3FF" }}>Tools Hub</h4>
-            {TOOLS.map(t => (
-              <Link key={t.href} href={t.href} className="footer-link">{t.label}</Link>
-            ))}
+            <h4 className="text-[11px] font-black tracking-[0.2em] uppercase mb-5" style={{ color:"#4DA3FF" }}>Tools Hub</h4>
+            {TOOLS.map(t => <Link key={t.href} href={t.href} className="footer-link">{t.label}</Link>)}
           </div>
 
-          {/* Explore */}
           <div>
-            <h4 className="text-[11px] font-black tracking-[0.2em] uppercase mb-5" style={{ color: "#A78BFA" }}>Explore</h4>
-            {EXPLORE.map(e => (
-              <Link key={e.href} href={e.href} className="footer-link">{e.label}</Link>
-            ))}
+            <h4 className="text-[11px] font-black tracking-[0.2em] uppercase mb-5" style={{ color:"#A78BFA" }}>Explore</h4>
+            {EXPLORE.map(e => <Link key={e.href} href={e.href} className="footer-link">{e.label}</Link>)}
           </div>
 
-          {/* Disclaimer */}
           <div>
-            <h4 className="text-[11px] font-black tracking-[0.2em] uppercase mb-5" style={{ color: "#52525B" }}>Disclaimer</h4>
-            <p className="text-[12px] leading-[1.8]" style={{ color: "#6B7280" }}>
+            <h4 className="text-[11px] font-black tracking-[0.2em] uppercase mb-5" style={{ color:"#52525B" }}>Disclaimer</h4>
+            <p className="text-[12px] leading-[1.8]" style={{ color:"#6B7280" }}>
               All content is for educational purposes only. Always consult a qualified healthcare professional before starting any fitness or diet programme.
             </p>
-            <p className="text-[12px] leading-[1.8] mt-3" style={{ color: "#6B7280" }}>
+            <p className="text-[12px] leading-[1.8] mt-3" style={{ color:"#6B7280" }}>
               AI tools on this site do not provide medical advice or diagnosis.
             </p>
           </div>
         </div>
 
-        {/* Bottom divider */}
-        <div className="w-full h-[1px] mb-7" style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent)" }} />
+        <div className="w-full h-[1px] mb-7" style={{ background:"linear-gradient(90deg,transparent,rgba(255,255,255,0.06),transparent)" }} />
 
-        {/* Bottom bar */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-[12px]" style={{ color: "#6B7280" }}>
-            © {new Date().getFullYear()} Sandy.Lifts. All rights reserved.
-          </p>
-          <div className="flex items-center gap-1.5 text-[12px]" style={{ color: "#6B7280" }}>
+          <p className="text-[12px]" style={{ color:"#6B7280" }}>© {new Date().getFullYear()} Sandy.Lifts. All rights reserved.</p>
+          <div className="flex items-center gap-1.5 text-[12px]" style={{ color:"#6B7280" }}>
             <span>Made with</span>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="#A78BFA" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
             <span>for the fitness community</span>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="#" className="footer-link" style={{ padding: 0, fontSize: "12px" }}>Privacy</Link>
-            <Link href="#" className="footer-link" style={{ padding: 0, fontSize: "12px" }}>Terms</Link>
+            <Link href="#" className="footer-link" style={{ padding:0, fontSize:"12px" }}>Privacy</Link>
+            <Link href="#" className="footer-link" style={{ padding:0, fontSize:"12px" }}>Terms</Link>
           </div>
         </div>
       </div>
 
-      {/* Bottom ambient glow */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[100px] pointer-events-none" style={{ background: "radial-gradient(ellipse at center bottom, rgba(77,163,255,0.04) 0%, transparent 70%)" }} />
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[100px] pointer-events-none" style={{ background:"radial-gradient(ellipse at center bottom,rgba(77,163,255,0.04) 0%,transparent 70%)" }} />
     </footer>
   );
 }
