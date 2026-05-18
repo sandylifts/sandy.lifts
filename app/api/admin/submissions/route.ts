@@ -4,7 +4,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { password, action, id, status } = body;
-    const adminPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "sandy@admin123";
+    const adminPassword = process.env.ADMIN_PASSWORD || process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "sandy@admin123";
 
     // 1. Verify password securely on the server
     if (password !== adminPassword) {
