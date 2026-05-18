@@ -174,13 +174,19 @@ export function WomenIntakeForm() {
   const next = () => { if (validate()) setStep(s => Math.min(s + 1, 7)); };
   const back = () => setStep(s => Math.max(s - 1, 1));
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     setSubmitting(true);
-    try {
-      await fetch("/api/intake", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ gender:"women", formData: fd }) });
-    } catch {}
-    const msg = encodeURIComponent(`Hi Sandy! 🌸 I just filled my women's fitness assessment form on your website.\n\nName: ${fd.name}\nAge: ${fd.age} yrs\nGoal: ${fd.mainGoal}\nHealth: ${fd.healthConditions.join(", ")||"None"}\n\nPlease review my details and create my personalised plan 🙏`);
+    
+    // Fire and forget API call so it doesn't block WhatsApp redirect if network/Supabase is slow
+    fetch("/api/intake", { 
+      method:"POST", 
+      headers:{"Content-Type":"application/json"}, 
+      body: JSON.stringify({ gender:"women", formData: fd }) 
+    }).catch(() => {});
+
+    const msg = encodeURIComponent(`Hi Sandy! 🌸 I just filled my women's fitness assessment form on your website.\n\nName: ${fd.name}\nAge: ${fd.age} yrs\nGoal: ${fd.mainGoal}\nHealth: ${fd.healthConditions.join(", ")||"None"}\n\nPlease review my details and create my personalised plan 🙏\n\nI'll explore the website again to see the rest of your amazing tools! Thank you so much! ✨`);
     window.open(`https://wa.me/918968244407?text=${msg}`, "_blank");
+    
     setSubmitted(true);
     setSubmitting(false);
   };
@@ -572,8 +578,16 @@ export function WomenIntakeForm() {
                   You&apos;re officially in the 1%!
                 </p>
                 <p style={{ color:"#8B909E", fontSize:"0.9rem", marginBottom:"1.25rem", lineHeight:1.5, position:"relative", zIndex:1 }}>
-                  Your form is with Sandy. WhatsApp opened — hit <strong>Send</strong> to notify him.
+                  Your form is with me! 🚀 WhatsApp opened — please hit <strong>Send</strong> to notify me.
                 </p>
+
+                {/* Note from Sandy */}
+                <div style={{ background:"rgba(229,152,155,0.06)", border:"1px dashed rgba(229,152,155,0.3)", borderRadius:"12px", padding:"0.85rem", marginBottom:"1.25rem", textAlign:"left", position:"relative", zIndex:1 }}>
+                  <p style={{ margin:0, fontSize:"0.8rem", color:P, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.05em", marginBottom:"0.25rem" }}>💬 Note from Sandy:</p>
+                  <p style={{ margin:0, fontSize:"0.85rem", color:"#D8DBFC", fontStyle:"italic", lineHeight:1.45 }}>
+                    &ldquo;Thank you so much! Please explore my other tools (like the AI Coach, Macro Calculator, and quizzes) while I review your assessment—there is so much waiting for you!&rdquo;
+                  </p>
+                </div>
 
                 {/* What Happens Next - Compact */}
                 <div style={{ background:"rgba(0,0,0,0.3)", borderRadius:"14px", padding:"1rem", textAlign:"left", border:"1px solid rgba(255,255,255,0.05)", position:"relative", zIndex:1 }}>

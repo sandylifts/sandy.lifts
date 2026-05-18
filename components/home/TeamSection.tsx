@@ -160,6 +160,7 @@ function TeamCard({ member, idx }: { member: typeof TEAM[0]; idx: number }) {
                   src={member.image}
                   alt={member.name}
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   className="object-cover"
                   style={{ filter: "saturate(1.1) contrast(1.05)", objectPosition: member.imgPosition ?? "center 10%" }}
                 />

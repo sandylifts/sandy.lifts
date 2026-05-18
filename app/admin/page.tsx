@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 
+
 export default function AdminPage() {
   const [pw, setPw]       = useState("");
   const [authed, setAuthed] = useState(false);
@@ -14,7 +15,7 @@ export default function AdminPage() {
     else { setErr(true); }
   };
 
-  if (authed) return <AdminDashboard />;
+  if (authed) return <AdminDashboard password={pw} />;
 
   return (
     <div style={{ minHeight:"100vh", background:"#07090D", display:"flex", alignItems:"center", justifyContent:"center", padding:"1rem" }}>
