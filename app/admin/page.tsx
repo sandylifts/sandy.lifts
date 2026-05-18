@@ -8,11 +8,29 @@ export default function AdminPage() {
   const [authed, setAuthed] = useState(false);
   const [err, setErr]     = useState(false);
 
-  const check = () => {
-    // Uses env var ADMIN_PASSWORD, fallback for dev
-    const correct = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "sandy@admin123";
-    if (pw === correct) { setAuthed(true); setErr(false); }
-    else { setErr(true); }
+  const [checking, setChecking] = useState(false);
+
+  const check = async () => {
+    if (!pw) return;
+    setChecking(true);
+    try {
+      const res = await fetch("/api/admin/submissions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: pw }),
+      });
+      const data = await res.json();
+      if (res.status === 200 && !data.error) {
+        setAuthed(true);
+        setErr(false);
+      } else {
+        setErr(true);
+      }
+    } catch {
+      setErr(true);
+    } finally {
+      setChecking(false);
+    }
   };
 
   if (authed) return <AdminDashboard password={pw} />;
@@ -32,10 +50,10 @@ export default function AdminPage() {
             background:"rgba(255,255,255,0.04)", border:`1px solid ${err ? "#FF4444" : "rgba(195,252,254,0.2)"}`,
             color:"#F5F7FA", outline:"none", boxSizing:"border-box" }} />
         {err && <p style={{ color:"#FF4444", fontSize:"0.78rem", margin:"0 0 0.75rem" }}>Incorrect password. Try again.</p>}
-        <button onClick={check}
+        <button onClick={check} disabled={checking}
           style={{ width:"100%", padding:"0.85rem", borderRadius:"12px", fontWeight:700, fontSize:"0.95rem", cursor:"pointer", border:"none",
-            background:"linear-gradient(135deg,#4DA3FF,#66E6FF)", color:"#07090D" }}>
-          Enter Dashboard
+            background:"linear-gradient(135deg,#4DA3FF,#66E6FF)", color:"#07090D", opacity: checking ? 0.75 : 1, transition: "opacity 0.2s ease" }}>
+          {checking ? "Verifying securely..." : "Enter Dashboard"}
         </button>
       </div>
     </div>
