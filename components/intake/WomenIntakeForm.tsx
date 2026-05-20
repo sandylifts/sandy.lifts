@@ -13,7 +13,7 @@ interface WomenForm {
   foodType: string; mealsPerDay: string; foodDislikes: string; junkHabit: string; lateNightEating: string;
   experience: string; currentActivity: string; timeAvailable: string; workoutPlace: string;
   mainGoal: string; focusArea: string[]; targetInMonth: string; whyTransform: string;
-  comments: string;
+  comments: string; referredBy: string; referrerName: string;
 }
 
 const INIT: WomenForm = {
@@ -23,7 +23,7 @@ const INIT: WomenForm = {
   foodType:"", mealsPerDay:"", foodDislikes:"", junkHabit:"", lateNightEating:"",
   experience:"", currentActivity:"", timeAvailable:"", workoutPlace:"",
   mainGoal:"", focusArea:[], targetInMonth:"", whyTransform:"",
-  comments:"",
+  comments:"", referredBy:"", referrerName:"",
 };
 
 const STEPS = [
@@ -99,7 +99,8 @@ function WTextarea({ value, placeholder, onChange }: {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export function WomenIntakeForm() {
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(0);
+  const [consentChecked, setConsentChecked] = useState(false);
   const [fd, setFd] = useState<WomenForm>(INIT);
   const [errs, setErrs] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -175,6 +176,11 @@ export function WomenIntakeForm() {
   const back = () => setStep(s => Math.max(s - 1, 1));
 
   const handleSubmit = () => {
+    if (!fd.referredBy) {
+      setErrs(p => ({ ...p, referredBy: "Please select who referred you" }));
+      return;
+    }
+
     setSubmitting(true);
     
     // Fire and forget API call so it doesn't block WhatsApp redirect if network/Supabase is slow
@@ -184,7 +190,11 @@ export function WomenIntakeForm() {
       body: JSON.stringify({ gender:"women", formData: fd }) 
     }).catch(() => {});
 
-    const msg = encodeURIComponent(`Hi Sandy! 🌸 I just filled my women's fitness assessment form on your website.\n\nName: ${fd.name}\nAge: ${fd.age} yrs\nGoal: ${fd.mainGoal}\nHealth: ${fd.healthConditions.join(", ")||"None"}\n\nPlease review my details and create my personalised plan 🙏\n\nI'll explore the website again to see the rest of your amazing tools! Thank you so much! ✨`);
+    let refStr = "";
+    if (fd.referredBy && fd.referredBy !== "No one (Found it myself)") {
+      refStr = `\nReferred By: ${fd.referredBy}` + (fd.referrerName ? ` (${fd.referrerName})` : "");
+    }
+    const msg = encodeURIComponent(`Hi Sandy! 🌸 I just filled my women's fitness assessment form on your website.\n\nName: ${fd.name}\nAge: ${fd.age} yrs\nGoal: ${fd.mainGoal}\nHealth: ${fd.healthConditions.join(", ")||"None"}${refStr}\n\nPlease review my details and create my personalised plan 🙏\n\nI'll explore the website again to see the rest of your amazing tools! Thank you so much! ✨`);
     window.open(`https://wa.me/918968244407?text=${msg}`, "_blank");
     
     setSubmitted(true);
@@ -567,6 +577,25 @@ export function WomenIntakeForm() {
             <WTextarea value={fd.comments} placeholder="Any extra details, questions, or special requests..." onChange={v => set("comments", v)} />
           </div>
 
+          {!submitted && (
+            <div style={{ marginTop: "0.5rem" }}>
+              <WLabel t="Who referred you to Sandy.Lifts? *" />
+              <WGrid>
+                {["Instagram 📱", "Friend / Family 👥", "Coach 🏋️‍♀️", "Other 🌟", "No one (Found it myself)"].map(v => (
+                  <WBtn key={v} selected={fd.referredBy===v} label={v} onClick={() => set("referredBy", v)} />
+                ))}
+              </WGrid>
+              <WErrMsg err={errs.referredBy} />
+              
+              {fd.referredBy && fd.referredBy !== "No one (Found it myself)" && fd.referredBy !== "Instagram 📱" && (
+                <div style={{ marginTop: "1rem" }}>
+                  <WLabel t="What is their name? (Optional)" />
+                  <WTextInput value={fd.referrerName} placeholder="Enter their name..." onChange={v => set("referrerName", v)} />
+                </div>
+              )}
+            </div>
+          )}
+
           {submitted ? (
             <div style={{ animation:"fade-in 0.5s ease-out" }}>
               {/* Success Banner */}
@@ -743,7 +772,39 @@ export function WomenIntakeForm() {
         ))}
       </div>
 
-      <div style={{ maxWidth:"580px", margin:"0 auto", padding:"0 1rem", position:"relative" }}>
+      {step === 0 ? (
+        <div style={{ maxWidth:"540px", margin:"0 auto", padding:"2rem 1.25rem", position:"relative", zIndex:10 }}>
+          <Link href="/start" style={{ display:"inline-flex", alignItems:"center", gap:"0.4rem", color:"#6B7280", fontSize:"0.85rem", marginBottom:"1.5rem", textDecoration:"none" }}>
+            ← Back
+          </Link>
+          <motion.div initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} style={{ background:"rgba(229,152,155,0.04)", border:"1px solid rgba(229,152,155,0.2)", borderRadius:"24px", padding:"2rem", textAlign:"center" }}>
+             <div style={{ display:"flex", justifyContent:"center", marginBottom:"1rem" }}>
+               <div style={{ width:60, height:60, borderRadius:"50%", background:"rgba(229,152,155,0.1)", border:"1px solid rgba(229,152,155,0.3)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"1.75rem" }}>
+                 📋
+               </div>
+             </div>
+             <h2 style={{ fontSize:"1.5rem", fontWeight:800, color:"#F5F7FA", marginBottom:"1rem" }}>Medical & Privacy Consent</h2>
+             <p style={{ color:"#8B909E", fontSize:"0.9rem", lineHeight:1.6, textAlign:"left", marginBottom:"1.5rem" }}>
+               Before we begin, please note that this assessment is not medical advice. By proceeding, you agree that:
+               <br/><br/>
+               • You will consult a physician if you have serious health conditions.<br/>
+               • You consent to Sandy.Lifts processing your data to create your fitness plan.<br/>
+               • Your information remains 100% private and secure.
+             </p>
+             <div style={{ display:"flex", gap:"1rem", alignItems:"flex-start", textAlign:"left", background:"rgba(255,255,255,0.02)", padding:"1.25rem", borderRadius:"12px", border:"1px solid rgba(255,255,255,0.08)", marginBottom:"1.5rem" }}>
+                <input type="checkbox" id="w-consent-check" checked={consentChecked} onChange={(e) => setConsentChecked(e.target.checked)} style={{ marginTop:"4px", accentColor:"#E5989B", width:"18px", height:"18px" }} />
+                <label htmlFor="w-consent-check" style={{ color:"#D8DBFC", fontSize:"0.85rem", lineHeight:1.5, cursor:"pointer" }}>
+                  I have read and agree to the Medical Disclaimer & Privacy Terms to proceed with my assessment.
+                </label>
+             </div>
+             <button onClick={() => { if(consentChecked) setStep(1); }} disabled={!consentChecked}
+               style={{ width:"100%", padding:"1rem", borderRadius:"14px", fontWeight:700, fontSize:"1rem", cursor:consentChecked?"pointer":"not-allowed", border:"none", background:consentChecked ? "linear-gradient(135deg, #E5989B, #F5CAC3)" : "rgba(255,255,255,0.05)", color:consentChecked?"#07090D":"#6B7280", transition:"all 0.2s" }}>
+               Start Assessment →
+             </button>
+          </motion.div>
+        </div>
+      ) : (
+      <div style={{ maxWidth:"580px", margin:"0 auto", padding:"0 1rem", position:"relative", zIndex:10 }}>
         <Link href="/start" style={{ display:"inline-flex", alignItems:"center", gap:"0.4rem", color:"#6B7280", fontSize:"0.85rem", marginBottom:"1.5rem", textDecoration:"none" }}>
           ← Back
         </Link>
@@ -835,6 +896,7 @@ export function WomenIntakeForm() {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }

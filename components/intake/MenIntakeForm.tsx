@@ -12,7 +12,7 @@ interface MenForm {
   jobType: string; workHours: string; outsideFood: string;
   foodType: string; mealsPerDay: string; foodDislikes: string; junkHabit: string; supplements: string[];
   primaryGoal: string; secondaryGoal: string[]; targetInMonth: string; sportTarget: string; whyTransform: string;
-  comments: string;
+  comments: string; referredBy: string; referrerName: string;
 }
 
 const INIT: MenForm = {
@@ -22,7 +22,7 @@ const INIT: MenForm = {
   jobType:"", workHours:"", outsideFood:"",
   foodType:"", mealsPerDay:"", foodDislikes:"", junkHabit:"", supplements:[],
   primaryGoal:"", secondaryGoal:[], targetInMonth:"", sportTarget:"", whyTransform:"",
-  comments:"",
+  comments:"", referredBy:"", referrerName:"",
 };
 
 const STEPS = [
@@ -98,7 +98,8 @@ function MTextarea({ value, placeholder, onChange }: {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export function MenIntakeForm() {
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(0);
+  const [consentChecked, setConsentChecked] = useState(false);
   const [fd, setFd] = useState<MenForm>(INIT);
   const [errs, setErrs] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -170,6 +171,11 @@ export function MenIntakeForm() {
   const back = () => setStep(s => Math.max(s - 1, 1));
 
   const handleSubmit = () => {
+    if (!fd.referredBy) {
+      setErrs(p => ({ ...p, referredBy: "Please select who referred you" }));
+      return;
+    }
+
     setSubmitting(true);
     
     // Fire and forget API call so it doesn't block WhatsApp redirect if network/Supabase is slow
@@ -178,7 +184,11 @@ export function MenIntakeForm() {
       body: JSON.stringify({ gender:"men", formData: fd }),
     }).catch(() => {});
 
-    const msg = encodeURIComponent(`Hi Sandy! 💪 I just filled my men's fitness assessment form on your website.\n\nName: ${fd.name}\nAge: ${fd.age} yrs\nGoal: ${fd.primaryGoal}\nHealth: ${fd.healthConditions.join(", ")||"None"}\n\nPlease review my details and create my personalised plan 🙏\n\nI'll explore the website again to see the rest of your amazing tools! Thank you so much! ✨`);
+    let refStr = "";
+    if (fd.referredBy && fd.referredBy !== "No one (Found it myself)") {
+      refStr = `\nReferred By: ${fd.referredBy}` + (fd.referrerName ? ` (${fd.referrerName})` : "");
+    }
+    const msg = encodeURIComponent(`Hi Sandy! 💪 I just filled my men's fitness assessment form on your website.\n\nName: ${fd.name}\nAge: ${fd.age} yrs\nGoal: ${fd.primaryGoal}\nHealth: ${fd.healthConditions.join(", ")||"None"}${refStr}\n\nPlease review my details and create my personalised plan 🙏\n\nI'll explore the website again to see the rest of your amazing tools! Thank you so much! ✨`);
     window.open(`https://wa.me/918968244407?text=${msg}`, "_blank");
     
     setSubmitted(true);
@@ -550,6 +560,25 @@ export function MenIntakeForm() {
             <MTextarea value={fd.comments} placeholder="Extra details, questions, or special notes..." onChange={v => set("comments", v)} />
           </div>
 
+          {!submitted && (
+            <div style={{ marginTop: "0.5rem" }}>
+              <MLabel t="Who referred you to Sandy.Lifts? *" />
+              <MGrid>
+                {["Instagram 📱", "Friend / Family 👥", "Coach 🏋️", "Other 🌟", "No one (Found it myself)"].map(v => (
+                  <MBtn key={v} selected={fd.referredBy===v} label={v} onClick={() => set("referredBy", v)} />
+                ))}
+              </MGrid>
+              <MErrMsg err={errs.referredBy} />
+              
+              {fd.referredBy && fd.referredBy !== "No one (Found it myself)" && fd.referredBy !== "Instagram 📱" && (
+                <div style={{ marginTop: "1rem" }}>
+                  <MLabel t="What is their name? (Optional)" />
+                  <MTextInput value={fd.referrerName} placeholder="Enter their name..." onChange={v => set("referrerName", v)} />
+                </div>
+              )}
+            </div>
+          )}
+
           {submitted ? (
             <div style={{ animation:"fade-in 0.5s ease-out" }}>
               {/* Success Banner */}
@@ -702,6 +731,38 @@ export function MenIntakeForm() {
         ))}
       </div>
 
+      {step === 0 ? (
+        <div style={{ maxWidth:"540px", margin:"0 auto", padding:"2rem 1.25rem", position:"relative", zIndex:10 }}>
+          <Link href="/start" style={{ display:"inline-flex", alignItems:"center", gap:"0.4rem", color:"#6B7280", fontSize:"0.85rem", marginBottom:"1.5rem", textDecoration:"none" }}>
+            ← Back
+          </Link>
+          <motion.div initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} style={{ background:"rgba(77,163,255,0.04)", border:"1px solid rgba(77,163,255,0.2)", borderRadius:"24px", padding:"2rem", textAlign:"center" }}>
+             <div style={{ display:"flex", justifyContent:"center", marginBottom:"1rem" }}>
+               <div style={{ width:60, height:60, borderRadius:"50%", background:"rgba(77,163,255,0.1)", border:"1px solid rgba(77,163,255,0.3)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"1.75rem" }}>
+                 📋
+               </div>
+             </div>
+             <h2 style={{ fontSize:"1.5rem", fontWeight:800, color:"#F5F7FA", marginBottom:"1rem" }}>Medical & Privacy Consent</h2>
+             <p style={{ color:"#8B909E", fontSize:"0.9rem", lineHeight:1.6, textAlign:"left", marginBottom:"1.5rem" }}>
+               Before we begin, please note that this assessment is not medical advice. By proceeding, you agree that:
+               <br/><br/>
+               • You will consult a physician if you have serious health conditions.<br/>
+               • You consent to Sandy.Lifts processing your data to create your fitness plan.<br/>
+               • Your information remains 100% private and secure.
+             </p>
+             <div style={{ display:"flex", gap:"1rem", alignItems:"flex-start", textAlign:"left", background:"rgba(255,255,255,0.02)", padding:"1.25rem", borderRadius:"12px", border:"1px solid rgba(255,255,255,0.08)", marginBottom:"1.5rem" }}>
+                <input type="checkbox" id="m-consent-check" checked={consentChecked} onChange={(e) => setConsentChecked(e.target.checked)} style={{ marginTop:"4px", accentColor:"#4DA3FF", width:"18px", height:"18px" }} />
+                <label htmlFor="m-consent-check" style={{ color:"#D8DBFC", fontSize:"0.85rem", lineHeight:1.5, cursor:"pointer" }}>
+                  I have read and agree to the Medical Disclaimer & Privacy Terms to proceed with my assessment.
+                </label>
+             </div>
+             <button onClick={() => { if(consentChecked) setStep(1); }} disabled={!consentChecked}
+               style={{ width:"100%", padding:"1rem", borderRadius:"14px", fontWeight:700, fontSize:"1rem", cursor:consentChecked?"pointer":"not-allowed", border:"none", background:consentChecked ? "linear-gradient(135deg, #4DA3FF, #66E6FF)" : "rgba(255,255,255,0.05)", color:consentChecked?"#07090D":"#6B7280", transition:"all 0.2s" }}>
+               Start Assessment →
+             </button>
+          </motion.div>
+        </div>
+      ) : (
       <div style={{ maxWidth:"580px", margin:"0 auto", padding:"0 1rem", position:"relative", zIndex:1 }}>
         <Link href="/start" style={{ display:"inline-flex", alignItems:"center", gap:"0.4rem", color:"#6B7280", fontSize:"0.85rem", marginBottom:"1.5rem", textDecoration:"none" }}>
           ← Back
@@ -789,6 +850,7 @@ export function MenIntakeForm() {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }
