@@ -1,16 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Outfit } from "next/font/google";
 import "./globals.css";
 import { Navigation } from "@/components/layout/Navigation";
 import { Footer } from "@/components/layout/Footer";
 
-const outfit = Outfit({
-  subsets: ["latin"],
-  variable: "--font-outfit",
-  weight: ["400", "600", "700", "800"],
-  display: "swap",
-  preload: true,
-});
+const outfitVariable = "font-sans";
+
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -64,10 +58,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={outfit.variable} data-scroll-behavior="smooth">
+    <html lang="en" className={outfitVariable} data-scroll-behavior="smooth">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet" />
       </head>
       <body className="bg-ink text-text-primary antialiased">
         <a

@@ -15,6 +15,7 @@ interface Tool {
   desc: string;
   slug?: string;
   live: boolean;
+  viral?: boolean;
   studyPanel?: StudyPanel;
 }
 

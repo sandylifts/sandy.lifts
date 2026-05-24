@@ -48,10 +48,11 @@ export function CTASection() {
           <span>Free plan. No signup required</span>
         </div>
         <div className="flex items-center gap-2.5">
-          <motion.div animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="#4DA3FF" className="drop-shadow-[0_0_6px_rgba(77,163,255,0.8)]"><polygon points="12 2 15 10 23 12 15 14 12 22 9 14 1 12 9 10 12 2" /></svg>
-          </motion.div>
-          <span>Built from real transformation experience</span>
+          <span className="relative flex h-2.5 w-2.5 shrink-0">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#22C55E] opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#22C55E] shadow-[0_0_8px_#22C55E]"></span>
+          </span>
+          <span className="text-[#4ADE80] font-semibold">Live: 4 active coaching slots remaining</span>
         </div>
       </div>
     </motion.div>

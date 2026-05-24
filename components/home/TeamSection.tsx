@@ -8,6 +8,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import founderImg from "../../assets/sandy founder.png";
 import sayedImg from "../../assets/sayed gulam hussain.jpeg";
 import himanshuImg from "../../assets/himashu kumar.jpeg";
+import simmiImg from "../../assets/SIMMI-KUMARI.png";
 
 const TEAM = [
   {
@@ -42,7 +43,8 @@ const TEAM = [
     name: "Simi Kumari",
     role: "Marketing Business Manager",
     desc: "The bridge between our platform and our people. Ensuring seamless client relations and business coordination.",
-    initials: "SK",
+    image: simmiImg,
+    imgPosition: "center 10%",
     accent: "#7b6fff",
   },
   {

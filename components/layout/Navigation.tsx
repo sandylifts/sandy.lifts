@@ -16,6 +16,7 @@ const NAV_LINKS = [
 
 export function Navigation() {
   const pathname                    = usePathname();
+  if (pathname?.startsWith("/admin")) return null;
   const [scrolled,   setScrolled]   = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);

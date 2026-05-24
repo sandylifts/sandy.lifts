@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 
 const TOOLS = [
   { label: "Macro Calculator", href: "/tools/macro-calculator" },
@@ -60,6 +61,9 @@ const SOCIALS = [
 ];
 
 export function Footer() {
+  const pathname = usePathname();
+  if (pathname?.startsWith("/admin")) return null;
+
   return (
     <footer className="relative w-full bg-[#000000] overflow-hidden">
       <style>{`

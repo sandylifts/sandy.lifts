@@ -11,7 +11,7 @@ export function HeroHeading() {
         className="flex flex-col items-center lg:items-start"
       >
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#4DA3FF]/10 border border-[#4DA3FF]/25 mb-4">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#4DA3FF] shadow-[0_0_8px_#4DA3FF]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#4DA3FF] shadow-[0_0_8px_#4DA3FF] animate-pulse" />
           <span className="text-[#4DA3FF] text-[0.72rem] font-bold tracking-[0.1em] uppercase">
             Sandy.Lifts Fitness System
           </span>
