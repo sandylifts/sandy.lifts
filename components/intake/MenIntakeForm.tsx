@@ -1008,30 +1008,49 @@ export function MenIntakeForm() {
               {/* Loader Animation */}
               <div style={{ width: "100%", maxWidth: "320px", textAlign: "center", position: "relative", zIndex: 10 }}>
                 
-                {/* 3D Radar Circle Ripple Indicator */}
+                {/* 3D Radar Dual-Circle Indicator */}
                 <div style={{ display: "flex", justifyContent: "center", marginBottom: "1.5rem" }}>
                   <div style={{
-                    width: "80px",
-                    height: "80px",
+                    width: "84px",
+                    height: "84px",
                     borderRadius: "50%",
-                    border: `2px dashed rgba(77, 163, 255, 0.3)`,
+                    border: `2px dashed rgba(77, 163, 255, 0.4)`,
                     borderTopColor: C,
+                    borderBottomColor: C,
                     position: "relative",
-                    animation: "spin 2.2s linear infinite",
+                    animation: "spin 1.2s linear infinite",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center"
                   }}>
+                    {/* Counter-rotating Inner dashed circle */}
+                    <div style={{
+                      position: "absolute",
+                      width: "58px",
+                      height: "58px",
+                      borderRadius: "50%",
+                      border: `2px dotted rgba(195, 252, 254, 0.4)`,
+                      borderLeftColor: "#C3FCFE",
+                      borderRightColor: "#C3FCFE",
+                      animation: "spin-reverse 1.6s linear infinite"
+                    }} />
+                    
                     {/* Inner glowing core */}
                     <div style={{
-                      width: "50px",
-                      height: "50px",
+                      width: "42px",
+                      height: "42px",
                       borderRadius: "50%",
-                      background: `radial-gradient(circle, rgba(77,163,255,0.2) 0%, transparent 70%)`,
-                      border: `1px solid rgba(77,163,255,0.2)`,
-                      animation: "fpulse 1.4s ease-in-out infinite"
+                      background: `radial-gradient(circle, rgba(77,163,255,0.35) 0%, transparent 70%)`,
+                      border: `1px solid rgba(77,163,255,0.3)`,
+                      position: "absolute"
                     }} />
-                    <span style={{ fontSize: "1.75rem", position: "absolute", animation: "fpulse 2s ease-in-out infinite" }}>🧬</span>
+
+                    {/* Cute flexing muscle emoji active pump */}
+                    <span style={{ 
+                      fontSize: "1.85rem", 
+                      position: "absolute", 
+                      animation: "muscle-pump 0.8s ease-in-out infinite alternate" 
+                    }}>💪</span>
                   </div>
                 </div>
 
@@ -1072,6 +1091,14 @@ export function MenIntakeForm() {
                   10% { opacity: 1; }
                   90% { opacity: 1; }
                   100% { top: 100%; opacity: 0; }
+                }
+                @keyframes spin-reverse {
+                  0% { transform: rotate(360deg); }
+                  100% { transform: rotate(0deg); }
+                }
+                @keyframes muscle-pump {
+                  0% { transform: scale(0.85); filter: drop-shadow(0 0 4px rgba(77,163,255,0.4)); }
+                  100% { transform: scale(1.15) rotate(-6deg); filter: drop-shadow(0 0 14px rgba(77,163,255,0.9)); }
                 }
               `}</style>
             </div>

@@ -95,6 +95,162 @@ const RefinementInput = ({ isRefining, onRefine }: { isRefining: boolean, onRefi
   );
 };
 
+const COMPARISON_ROWS = [
+  {
+    feature: "Hormonal & Medical Awareness",
+    sandy: { text: "Yes (Scans PCOD, Thyroid, Injuries, Periods)", check: true },
+    generic: { text: "No (Generic guidelines only)", check: false },
+    trainer: { text: "Rarely (Not clinically trained)", check: false },
+  },
+  {
+    feature: "BMR & Macro Accuracy",
+    sandy: { text: "Clinical (Mifflin-St Jeor + PAL scaling)", check: true },
+    generic: { text: "Inaccurate (Prone to math hallucinations)", check: false },
+    trainer: { text: "Bro-Science (Fixed 1500kcal sheet)", check: false },
+  },
+  {
+    feature: "Real-time Adaptability",
+    sandy: { text: "Interactive (Chat updates instantly)", check: true },
+    generic: { text: "Static (Forgets previous context easily)", check: false },
+    trainer: { text: "Fixed (Must wait for weekly check-ins)", check: false },
+  },
+  {
+    feature: "Personalized Reasoning",
+    sandy: { text: "Full Transparency (Explains the science)", check: true },
+    generic: { text: "Generic Text (No clinical explanations)", check: false },
+    trainer: { text: "Zero (\"Just lift this and eat that\")", check: false },
+  },
+  {
+    feature: "Cost Barriers",
+    sandy: { text: "Free (Top-1% science for everyone)", check: true },
+    generic: { text: "Premium (Paid subscription required)", check: false },
+    trainer: { text: "Expensive (₹5,000 - ₹15,000/month)", check: false },
+  },
+];
+
+const StatusCell = ({ check, text, highlight }: { check: boolean; text: string; highlight?: boolean }) => {
+  return (
+    <div className="flex flex-col items-center justify-center p-2 text-center">
+      <span className={`inline-flex items-center gap-1.5 text-[13px] font-semibold ${highlight ? 'text-white' : 'text-white/70'}`}>
+        {check ? (
+          <CheckCircle2 size={15} className="text-[#22D3A5] drop-shadow-[0_0_6px_rgba(34,211,165,0.8)] shrink-0" />
+        ) : (
+          <span className="w-2 h-2 rounded-full bg-[#EF4444] shadow-[0_0_6px_#EF4444] shrink-0" />
+        )}
+        <span className="text-center">{text.split(" ")[0]}</span>
+      </span>
+      <span className={`text-[10.5px] mt-1 text-center font-medium block leading-snug ${highlight ? 'text-[#C084FC]/85' : 'text-white/45'}`}>
+        {text.includes("(") ? text.substring(text.indexOf("(")) : text}
+      </span>
+    </div>
+  );
+};
+
+/* ─── Modern 2026 Trust Widget (Social Proof) ────────── */
+const ModernTrustWidget = () => {
+  const [scans, setScans] = useState(1482);
+  const [logIndex, setLogIndex] = useState(0);
+
+  const CLINICAL_LOGS = [
+    { loc: "Delhi NCR", action: "PCOS Hormone Profile Mapped & Filtered" },
+    { loc: "Mumbai", action: "Thyroid TDEE Compensation Set" },
+    { loc: "Bengaluru", action: "Knee Injury Progressive Volume Compensated" },
+    { loc: "Hyderabad", action: "Insulin Sensitivity Macro Scaling Active" },
+    { loc: "Pune", action: "Postural Spine Deficit Adjusted" },
+    { loc: "Chennai", action: "Cardiovascular Heart-Rate Zones Recalibrated" }
+  ];
+
+  useEffect(() => {
+    // Randomize initial scan count slightly
+    setScans(Math.floor(Math.random() * 80) + 1420);
+
+    // Increment scans periodically
+    const scanInterval = setInterval(() => {
+      setScans(prev => prev + Math.floor(Math.random() * 2) + 1);
+    }, 4500);
+
+    // Cycle through logs
+    const logInterval = setInterval(() => {
+      setLogIndex(prev => (prev + 1) % CLINICAL_LOGS.length);
+    }, 3500);
+
+    return () => {
+      clearInterval(scanInterval);
+      clearInterval(logInterval);
+    };
+  }, []);
+
+  return (
+    <div className="relative group overflow-hidden bg-gradient-to-r from-white/[0.04] to-white/[0.01] backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-stretch gap-4 sm:gap-6 shadow-[0_12px_40px_rgba(0,0,0,0.6)] hover:border-[#A855F7]/30 transition-all duration-500 max-w-[650px] w-full animate-fade-in-up-hero" style={{ animationDelay: '700ms' }}>
+      {/* Decorative background glow */}
+      <div className="absolute -right-20 -bottom-20 w-40 h-40 rounded-full bg-[#A855F7]/5 blur-[40px] group-hover:bg-[#A855F7]/10 transition-all duration-500 pointer-events-none" />
+      <div className="absolute -left-20 -top-20 w-40 h-40 rounded-full bg-[#00D4FF]/5 blur-[40px] group-hover:bg-[#00D4FF]/10 transition-all duration-500 pointer-events-none" />
+
+      {/* Section 1: Live Pulse & Scan Count */}
+      <div className="flex items-center gap-4 w-full sm:w-auto shrink-0">
+        <div className="relative flex items-center justify-center w-12 h-12 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.15)] shrink-0">
+          <Activity size={22} className="animate-pulse" />
+          <div className="absolute top-0 right-0 w-2.5 h-2.5 bg-green-400 border-2 border-[#05050B] rounded-full shadow-[0_0_8px_#4ade80]" />
+        </div>
+        
+        <div>
+          <div className="flex items-baseline gap-1.5">
+            <span className="font-display text-[22px] font-extrabold text-white tracking-tight tabular-nums">
+              {scans.toLocaleString()}
+            </span>
+            <span className="font-mono text-[9px] text-green-400 font-bold uppercase tracking-wider bg-green-500/10 px-1.5 py-0.5 rounded border border-green-500/20 animate-pulse">
+              Live
+            </span>
+          </div>
+          <p className="font-body text-[11px] font-semibold text-white/60 mt-0.5 whitespace-nowrap">
+            Active Bio-Scans Today
+          </p>
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div className="hidden sm:block w-[1px] bg-white/10 shrink-0" />
+
+      {/* Section 2: Clinical Security / Live Scanner Logs */}
+      <div className="flex flex-col justify-between gap-2.5 w-full overflow-hidden">
+        {/* Ticker for real-time operations */}
+        <div className="flex items-center gap-2 bg-[#05050B]/40 rounded-lg px-3 py-1.5 border border-white/5 h-[34px] overflow-hidden">
+          <span className="font-mono text-[9px] text-[#A855F7] font-bold tracking-wider shrink-0 uppercase">
+            [SCANNED]
+          </span>
+          <div className="relative flex-1 h-4 overflow-hidden">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={logIndex}
+                initial={{ y: 15, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -15, opacity: 0 }}
+                transition={{ duration: 0.35, ease: "easeInOut" }}
+                className="absolute inset-0 flex items-center gap-1.5"
+              >
+                <span className="font-display text-[11px] font-bold text-white shrink-0">
+                  {CLINICAL_LOGS[logIndex].loc}:
+                </span>
+                <span className="font-body text-[11px] text-white/50 truncate">
+                  {CLINICAL_LOGS[logIndex].action}
+                </span>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
+
+        {/* Doctor Approved / Data Protection badge */}
+        <div className="flex items-center gap-1.5">
+          <ShieldCheck size={14} className="text-[#A855F7] drop-shadow-[0_0_5px_rgba(168,85,247,0.5)] shrink-0" />
+          <span className="font-body text-[9.5px] font-bold text-white/45 tracking-wider uppercase">
+            100% HIPAA & Medical-Grade Data Protection
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 /* ─── Component ──────────────────────────────────────── */
 export default function AICoach() {
   const [phase, setPhase] = useState<Phase>("hook");
@@ -506,290 +662,403 @@ export default function AICoach() {
       <div className="relative z-[10] w-full">
         <AnimatePresence mode="wait">
           {phase === "hook" && (
-            <motion.div key="hook" initial={{ opacity: 1 }} exit={{ opacity: 0 }} className="relative z-[20] w-full min-h-screen flex flex-col pt-[80px] pb-16 lg:pb-[60px] overflow-hidden">
+            <motion.div key="hook" initial={{ opacity: 1 }} exit={{ opacity: 0 }} className="relative z-[20] w-full min-h-screen flex flex-col pt-[80px] pb-16 lg:pb-[60px]">
 
-              {/* ── CINEMATIC FULL-SCREEN BACKGROUND VIDEO ── */}
-              <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden" style={{ background: '#05050B' }}>
+              {/* ── HERO VIEWPORT FOLD ── */}
+              <div className="relative w-full min-h-[calc(100vh-80px)] flex flex-col overflow-hidden justify-between">
+                {/* ── CINEMATIC FULL-SCREEN BACKGROUND VIDEO ── */}
+                <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden" style={{ background: '#05050B' }}>
 
-                {/* Mobile: Video background */}
-                {mounted && (
-                  <video
-                    ref={videoRef}
-                    src="/hero-ai-coach.mp4"
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    preload="auto"
-                    className="absolute inset-0 w-full h-full object-cover object-center lg:hidden"
+
+
+                  {/* Desktop: Background image */}
+                  <img
+                    src="/hero-ai-sectio-bg.jpg.png"
+                    alt=""
+                    aria-hidden="true"
+                    className="absolute inset-0 w-full h-full object-cover object-right hidden lg:block"
                     style={{
-                      filter: 'contrast(1.06) brightness(0.88) saturate(1.15)',
-                      willChange: 'transform',
+                      filter: 'contrast(1.06) brightness(1.05) saturate(1.12)',
                     }}
                   />
-                )}
 
-                {/* Desktop: Background image */}
-                <img
-                  src="/hero-ai-coach-bg.jpg.png"
-                  alt=""
-                  aria-hidden="true"
-                  className="absolute inset-0 w-full h-full object-cover object-center hidden lg:block"
-                  style={{
-                    filter: 'contrast(1.05) brightness(0.75) saturate(1.1)',
-                  }}
-                />
+                  {/* ── LEFT: solid dark shield ── */}
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      background:
+                        'linear-gradient(to right, rgba(5,5,11,1) 0%, rgba(5,5,11,0.98) 20%, rgba(5,5,11,0.9) 35%, rgba(5,5,11,0.6) 50%, rgba(5,5,11,0.2) 65%, transparent 80%)',
+                    }}
+                  />
 
-                {/* ── LEFT: solid dark shield — text always crisp ── */}
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background:
-                      'linear-gradient(to right, rgba(5,5,11,1) 0%, rgba(5,5,11,0.98) 25%, rgba(5,5,11,0.92) 40%, rgba(5,5,11,0.70) 52%, rgba(5,5,11,0.30) 65%, rgba(5,5,11,0.08) 80%, transparent 100%)',
-                  }}
-                />
+                  {/* ── RIGHT: Cinematic purple-cyan bloom over the video ── */}
+                  <div
+                    className="absolute right-0 top-0 bottom-0 w-[60%] pointer-events-none"
+                    style={{
+                      background:
+                        'radial-gradient(ellipse 80% 90% at 80% 50%, rgba(139,92,246,0.22) 0%, rgba(0,212,255,0.12) 45%, transparent 72%)',
+                      mixBlendMode: 'screen',
+                    }}
+                  />
 
-                {/* ── RIGHT: Cinematic purple-cyan bloom over the video ── */}
-                <div
-                  className="absolute right-0 top-0 bottom-0 w-[60%] pointer-events-none"
-                  style={{
-                    background:
-                      'radial-gradient(ellipse 80% 90% at 80% 50%, rgba(139,92,246,0.22) 0%, rgba(0,212,255,0.12) 45%, transparent 72%)',
-                    mixBlendMode: 'screen',
-                  }}
-                />
+                  {/* Thin rim light */}
+                  <div
+                    className="absolute right-0 top-[10%] bottom-[10%] w-[2px] pointer-events-none"
+                    style={{
+                      background: 'linear-gradient(to bottom, transparent 0%, rgba(139,92,246,0.8) 30%, rgba(0,212,255,0.6) 70%, transparent 100%)',
+                      filter: 'blur(4px)',
+                    }}
+                  />
 
-                {/* Thin rim light — far right edge cinematic glow */}
-                <div
-                  className="absolute right-0 top-[10%] bottom-[10%] w-[2px] pointer-events-none"
-                  style={{
-                    background: 'linear-gradient(to bottom, transparent 0%, rgba(139,92,246,0.8) 30%, rgba(0,212,255,0.6) 70%, transparent 100%)',
-                    filter: 'blur(4px)',
-                  }}
-                />
+                  {/* Bottom page-blend fade */}
+                  <div
+                    className="absolute bottom-0 left-0 right-0 h-52"
+                    style={{ background: 'linear-gradient(to top, #05050B 0%, rgba(5,5,11,0.55) 55%, transparent 100%)' }}
+                  />
 
-                {/* Bottom page-blend fade */}
-                <div
-                  className="absolute bottom-0 left-0 right-0 h-52"
-                  style={{ background: 'linear-gradient(to top, #05050B 0%, rgba(5,5,11,0.55) 55%, transparent 100%)' }}
-                />
-
-                {/* Top soft vignette */}
-                <div
-                  className="absolute top-0 left-0 right-0 h-28"
-                  style={{ background: 'linear-gradient(to bottom, rgba(5,5,11,0.45) 0%, transparent 100%)' }}
-                />
-              </div>
-
-              {/* Ticker Bar — sits flush below the fixed navbar */}
-              <div className="relative z-[100] w-full h-[32px] lg:h-[36px] bg-gradient-to-r from-[#05050B]/80 via-[#1a0b2e]/80 to-[#05050B]/80 backdrop-blur-md border-y border-[#A855F7]/20 shadow-[0_4px_30px_rgba(168,85,247,0.1)] flex items-center overflow-hidden mb-8 lg:mb-16">
-                <div className="absolute left-0 top-0 bottom-0 w-[60px] bg-gradient-to-r from-[#0d0018] to-transparent z-10 pointer-events-none" />
-                <div className="absolute right-0 top-0 bottom-0 w-[60px] bg-gradient-to-l from-[#0d0018] to-transparent z-10 pointer-events-none" />
-
-                <div className="animate-marquee whitespace-nowrap flex items-center font-body text-[11px] font-medium text-[#c084fc] tracking-[0.02em]">
-                  {[...Array(2)].map((_, i) => (
-                    <div key={i} className="flex items-center">
-                      {["Struggling with fat loss?", "No clear diet plan?", "Not seeing results?", "Confused about what to eat?", "Workout not working?", "No accountability?"].map((prob, idx) => (
-                        <div key={idx} className="flex items-center mr-[32px]">
-                          <div className="w-[6px] h-[6px] rounded-full bg-[#c084fc] mr-2 animate-pulse-dot" />
-                          {prob}
-                        </div>
-                      ))}
-                    </div>
-                  ))}
+                  {/* Top soft vignette */}
+                  <div
+                    className="absolute top-0 left-0 right-0 h-28"
+                    style={{ background: 'linear-gradient(to bottom, rgba(5,5,11,0.45) 0%, transparent 100%)' }}
+                  />
                 </div>
-              </div>
 
-              {/* LEFT-ALIGNED CONTENT OVERLAY */}
-              <div className="relative z-[20] w-full max-w-[1440px] mx-auto px-5 lg:px-[80px] flex flex-row items-center mt-auto mb-auto">
+                {/* Ticker Bar */}
+                <div className="relative z-[100] w-full h-[32px] lg:h-[36px] bg-gradient-to-r from-[#05050B]/80 via-[#1a0b2e]/80 to-[#05050B]/80 backdrop-blur-md border-y border-[#A855F7]/20 shadow-[0_4px_30px_rgba(168,85,247,0.1)] flex items-center overflow-hidden mb-8 lg:mb-16">
+                  <div className="absolute left-0 top-0 bottom-0 w-[60px] bg-gradient-to-r from-[#0d0018] to-transparent z-10 pointer-events-none" />
+                  <div className="absolute right-0 top-0 bottom-0 w-[60px] bg-gradient-to-l from-[#0d0018] to-transparent z-10 pointer-events-none" />
 
-                {/* LEFT COLUMN — Text & Buttons */}
-                <div className="w-full lg:w-[52%] flex flex-col text-left items-start">
-
-                  {/* Badge */}
-                  <div className="inline-flex items-center gap-2 border border-[#A855F7]/50 bg-[#A855F7]/15 backdrop-blur-md px-[16px] py-[8px] rounded-full mb-6 w-fit animate-fade-in-up-hero shadow-[0_0_20px_rgba(168,85,247,0.3)]" style={{ animationDelay: '100ms' }}>
-                    <Zap size={14} className="text-[#c084fc] animate-blink-real shrink-0" fill="currentColor" />
-                    <span className="font-heading text-[11px] font-bold tracking-[0.1em] uppercase text-[#c084fc]">TOP 1% AI COACHING SYSTEM</span>
-                  </div>
-
-                  {/* Main Headline */}
-                  <h1 className="font-display font-bold text-[44px] md:text-[60px] lg:text-[72px] leading-[1.05] tracking-[-0.03em] max-w-[620px] mb-4 animate-fade-in-up-hero text-[#FFFFFF]" style={{ animationDelay: '200ms', textShadow: '0 0 40px rgba(0,0,0,1), 0 2px 8px rgba(0,0,0,0.9), 0 0 80px rgba(0,0,0,0.8)' }}>
-                    Trends Fail. Science Wins.
-                  </h1>
-
-                  {/* Sub Headline with AI Icon */}
-                  <div className="flex items-center gap-3 mb-6 animate-fade-in-up-hero" style={{ animationDelay: '300ms' }}>
-                    <div className="relative shrink-0 animate-robot-reveal">
-                      <div className="animate-robot-float relative">
-                        {/* Glow ring behind robot */}
-                        <div className="absolute inset-0 rounded-full animate-pulse-glow pointer-events-none"
-                          style={{ background: 'radial-gradient(circle, rgba(168,85,247,0.35) 0%, transparent 70%)', transform: 'scale(1.4)' }}
-                        />
-                        <svg viewBox="0 0 60 70" fill="none" xmlns="http://www.w3.org/2000/svg"
-                          className="w-[52px] h-[52px] sm:w-[58px] sm:h-[58px] relative z-10"
-                          style={{ filter: 'drop-shadow(0 0 12px rgba(168,85,247,1)) drop-shadow(0 0 24px rgba(0,212,255,0.6))' }}
-                        >
-                          <defs>
-                            <radialGradient id="eyeGlowL" cx="50%" cy="50%" r="50%">
-                              <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
-                              <stop offset="100%" stopColor="#00D4FF" stopOpacity="1" />
-                            </radialGradient>
-                            <radialGradient id="eyeGlowR" cx="50%" cy="50%" r="50%">
-                              <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
-                              <stop offset="100%" stopColor="#00D4FF" stopOpacity="1" />
-                            </radialGradient>
-                            <linearGradient id="headG" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stopColor="#3d1580" />
-                              <stop offset="100%" stopColor="#140840" />
-                            </linearGradient>
-                            <linearGradient id="bodyG" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stopColor="#2a0f6a" />
-                              <stop offset="100%" stopColor="#0a0330" />
-                            </linearGradient>
-                            <filter id="glow">
-                              <feGaussianBlur stdDeviation="1.5" result="coloredBlur" />
-                              <feMerge><feMergeNode in="coloredBlur" /><feMergeNode in="SourceGraphic" /></feMerge>
-                            </filter>
-                          </defs>
-                          <line x1="30" y1="4" x2="30" y2="13" stroke="url(#eyeGlowL)" strokeWidth="1.5" strokeLinecap="round" />
-                          <circle cx="30" cy="3" r="2.5" fill="#00D4FF" filter="url(#glow)" className="animate-pulse-dot" />
-                          <rect x="10" y="13" width="40" height="24" rx="10" fill="url(#headG)" stroke="#A855F7" strokeWidth="1.5" />
-                          <rect x="13" y="13" width="34" height="7" rx="7" fill="#A855F7" opacity="0.3" />
-                          <rect x="15" y="19" width="10" height="9" rx="3" fill="url(#eyeGlowL)" filter="url(#glow)" />
-                          <rect x="35" y="19" width="10" height="9" rx="3" fill="url(#eyeGlowR)" filter="url(#glow)" />
-                          <circle cx="20" cy="23.5" r="2.5" fill="#0a0020" opacity="0.9" />
-                          <circle cx="40" cy="23.5" r="2.5" fill="#0a0020" opacity="0.9" />
-                          <circle cx="21.5" cy="21.5" r="1.2" fill="white" opacity="1" />
-                          <circle cx="41.5" cy="21.5" r="1.2" fill="white" opacity="1" />
-                          <path d="M21 31 Q30 36 39 31" stroke="#00D4FF" strokeWidth="2" strokeLinecap="round" fill="none" filter="url(#glow)" />
-                          <rect x="26" y="37" width="8" height="4" rx="2" fill="#7C3AED" opacity="0.9" />
-                          <rect x="13" y="41" width="34" height="22" rx="8" fill="url(#bodyG)" stroke="#7C3AED" strokeWidth="1.5" />
-                          <rect x="20" y="46" width="20" height="11" rx="4" fill="#A855F7" opacity="0.2" stroke="#A855F7" strokeWidth="0.8" />
-                          <circle cx="30" cy="51.5" r="3.5" fill="#00D4FF" opacity="1" filter="url(#glow)" className="animate-pulse-dot" />
-                          <circle cx="30" cy="51.5" r="1.8" fill="white" opacity="0.9" />
-                          <rect x="3" y="42" width="9" height="5" rx="2.5" fill="#7C3AED" opacity="0.9" />
-                          <circle cx="2.5" cy="44.5" r="3" fill="#A855F7" opacity="0.8" />
-                          <g className="animate-robot-wave" style={{ transformOrigin: '49px 43px' }}>
-                            <rect x="48" y="41" width="9" height="5" rx="2.5" fill="#A855F7" opacity="1" />
-                            <circle cx="58.5" cy="43.5" r="3.5" fill="#00D4FF" opacity="1" filter="url(#glow)" />
-                            <line x1="57" y1="41" x2="60" y2="38" stroke="#00D4FF" strokeWidth="1" opacity="0.8" />
-                            <line x1="60" y1="42" x2="63" y2="41" stroke="#00D4FF" strokeWidth="1" opacity="0.8" />
-                          </g>
-                          <rect x="18" y="63" width="9" height="6" rx="3" fill="#7C3AED" opacity="0.9" />
-                          <rect x="33" y="63" width="9" height="6" rx="3" fill="#7C3AED" opacity="0.9" />
-                          <rect x="16" y="67" width="13" height="4" rx="2" fill="#A855F7" opacity="0.6" />
-                          <rect x="31" y="67" width="13" height="4" rx="2" fill="#A855F7" opacity="0.6" />
-                        </svg>
-                        {/* Live dot */}
-                        <div className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#22D3EE] border-2 border-[#05050B] animate-pulse z-20" />
-                      </div>
-                    </div>
-                    <h2 className="animate-text-slide font-display font-bold text-[22px] sm:text-[28px] md:text-[34px] bg-[linear-gradient(to_right,#C084FC,#A855F7,#00D4FF)] bg-[length:200%_auto] bg-clip-text text-transparent animate-shimmer-bg tracking-tight leading-[1.15]" style={{ filter: 'drop-shadow(0 0 16px rgba(168,85,247,0.9)) drop-shadow(0 2px 6px rgba(0,0,0,0.9))' }}>
-                      Meet Your Smart AI Coach
-                    </h2>
-                  </div>
-
-                  {/* Description Text */}
-                  <div className="font-body text-[16px] lg:text-[17px] text-[#C8D0E0] leading-[1.65] max-w-[480px] mb-8 animate-fade-in-up-hero" style={{ animationDelay: '400ms', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>
-                    <p className="mb-2">Your body is unique. Your fitness plan should be too.<br />Let AI build your perfect roadmap.</p>
-                    <p className="text-white/90 font-medium">You've tried the trends. Now, try the truth.</p>
-                  </div>
-
-                  {/* CTA Button */}
-                  <div className="w-full max-w-[400px] mb-8 animate-fade-in-up-hero" style={{ animationDelay: '500ms' }}>
-                    <button
-                      onClick={handleStartQuiz}
-                      className="group relative w-full h-[60px] lg:h-[64px] rounded-2xl bg-[linear-gradient(135deg,#A855F7_0%,#7C3AED_50%,#00D4FF_100%)] bg-[length:200%_auto] border border-white/20 hover:bg-[position:-100%_0] transition-all duration-500 ease-out active:scale-95 flex items-center justify-center gap-2.5 overflow-hidden animate-pulse-glow shadow-[0_0_30px_rgba(168,85,247,0.4)]"
-                    >
-                      <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-                      <div className="absolute top-0 left-[-100%] w-[50%] h-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-20deg] animate-shimmer pointer-events-none" />
-                      <div className="w-[8px] h-[8px] rounded-full bg-white animate-blink-dot z-10 shrink-0" />
-                      <span className="font-display text-[18px] lg:text-[20px] font-bold text-white tracking-wide z-10 flex items-center gap-2">
-                        Start Free AI Analysis <ArrowRight size={22} className="text-white group-hover:translate-x-1 transition-transform" />
-                      </span>
-                    </button>
-                  </div>
-
-                  {/* Trust Line */}
-                  <div className="flex flex-wrap items-center gap-x-6 gap-y-3 mb-10 animate-fade-in-up-hero" style={{ animationDelay: '600ms' }}>
-                    {["No credit card", "Takes only 60 seconds", "Trusted by influencers & celebrities"].map((text, i) => (
-                      <div key={i} className="flex items-center gap-2">
-                        <CheckCircle2 size={16} className="text-[#22C55E]" />
-                        <span className="font-body text-[13px] font-medium text-white">{text}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Social Proof */}
-                  <div className="flex items-center gap-6 bg-white/[0.03] backdrop-blur-md border border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.5)] rounded-full px-[24px] py-[12px] animate-fade-in-up-hero w-fit" style={{ animationDelay: '700ms' }}>
-                    <div className="flex items-center gap-3">
-                      <div className="flex -space-x-2">
-                        {[1, 2, 3, 4].map((i) => (
-                          <div key={i} className="w-8 h-8 rounded-full bg-[#1A1D2D] border-2 border-[#05050B] flex items-center justify-center">
-                            <User size={12} className="text-white/50" />
+                  <div className="animate-marquee whitespace-nowrap flex items-center font-body text-[11px] font-medium text-[#c084fc] tracking-[0.02em]">
+                    {[...Array(2)].map((_, i) => (
+                      <div key={i} className="flex items-center">
+                        {["Struggling with fat loss?", "No clear diet plan?", "Not seeing results?", "Confused about what to eat?", "Workout not working?", "No accountability?"].map((prob, idx) => (
+                          <div key={idx} className="flex items-center mr-[32px]">
+                            <div className="w-[6px] h-[6px] rounded-full bg-[#c084fc] mr-2 animate-pulse-dot" />
+                            {prob}
                           </div>
                         ))}
                       </div>
-                      <div>
-                        <div className="text-[#FBBF24] text-[12px] tracking-[2px]">★★★★★</div>
-                        <div className="font-body text-[11px] font-semibold text-white/80">50,000+ Transformed</div>
-                      </div>
-                    </div>
-                    <div className="w-[1px] h-[28px] bg-white/20" />
-                    <div>
-                      <span className="font-display text-[20px] font-extrabold text-white">4.9</span>
-                      <span className="font-body text-[11px] text-white/50 font-medium"> /5 Rating</span>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-
-
-              {/* ── AI METRICS GRAPH STRIP ── */}
-              <div className="w-full max-w-[1440px] mx-auto px-5 lg:px-[80px] mt-6 animate-fade-in-up-hero" style={{ animationDelay: '1100ms' }}>
-                <div className="relative bg-white/[0.02] border border-white/[0.07] rounded-2xl px-6 py-5 backdrop-blur-md overflow-hidden">
-                  {/* subtle glow bg */}
-                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(139,92,246,0.05),transparent_70%)] pointer-events-none" />
-                  <div className="flex items-center gap-2 mb-5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#22D3A5] animate-pulse" />
-                    <span className="font-mono text-[10px] text-[#6B6F9A] uppercase tracking-[0.18em]">LIVE AI SCAN — PERFORMANCE METRICS</span>
-                    <div className="ml-auto flex items-center gap-1.5">
-                      <div className="w-1.5 h-1.5 rounded-full bg-[#A855F7] animate-blink-dot" />
-                      <span className="font-mono text-[9px] text-[#A855F7] font-bold tracking-widest">SCANNING</span>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-5">
-                    {[
-                      { label: 'Muscle Recovery', val: 94, color: '#A855F7', glow: 'rgba(168,85,247,0.5)' },
-                      { label: 'Fat Burn Rate',   val: 78, color: '#00D4FF', glow: 'rgba(0,212,255,0.5)' },
-                      { label: 'Metabolic Score', val: 86, color: '#e879f9', glow: 'rgba(232,121,249,0.5)' },
-                      { label: 'Nutrition Sync',  val: 91, color: '#22D3A5', glow: 'rgba(34,211,165,0.5)' },
-                    ].map(({ label, val, color, glow }) => (
-                      <div key={label} className="flex flex-col gap-2">
-                        <div className="flex justify-between items-baseline">
-                          <span className="font-heading text-[11px] text-white/50 font-semibold">{label}</span>
-                          <span className="font-mono text-[14px] font-bold" style={{ color, textShadow: `0 0 10px ${glow}` }}>{val}<span className="text-[10px] opacity-60">%</span></span>
-                        </div>
-                        <div className="relative h-[4px] rounded-full bg-white/[0.06] overflow-hidden">
-                          <div
-                            className="h-full rounded-full"
-                            style={{
-                              width: `${val}%`,
-                              background: `linear-gradient(90deg, ${color}60, ${color})`,
-                              boxShadow: `0 0 10px ${glow}, 0 0 20px ${glow}60`,
-                            }}
-                          />
-                        </div>
-                        <div className="flex justify-between">
-                          {[0,25,50,75,100].map(t => (
-                            <div key={t} className="w-[1px] h-[4px] rounded-full" style={{ background: t <= val ? `${color}50` : 'rgba(255,255,255,0.06)' }} />
-                          ))}
-                        </div>
-                      </div>
                     ))}
                   </div>
                 </div>
+
+                {/* LEFT-ALIGNED CONTENT OVERLAY */}
+                <div className="relative z-[20] w-full max-w-[1440px] mx-auto px-5 lg:px-[80px] flex flex-row items-center mt-auto mb-auto">
+
+                  {/* LEFT COLUMN — Text & Buttons */}
+                  <div className="w-full lg:w-[52%] flex flex-col text-left items-start">
+
+                    {/* Badge */}
+                    <div className="inline-flex items-center gap-2 border border-[#A855F7]/50 bg-[#A855F7]/15 backdrop-blur-md px-[16px] py-[8px] rounded-full mb-6 w-fit animate-fade-in-up-hero shadow-[0_0_20px_rgba(168,85,247,0.3)]" style={{ animationDelay: '100ms' }}>
+                      <Zap size={14} className="text-[#c084fc] animate-blink-real shrink-0" fill="currentColor" />
+                      <span className="font-heading text-[11px] font-bold tracking-[0.1em] uppercase text-[#c084fc]">TOP 1% AI COACHING SYSTEM</span>
+                    </div>
+
+                    {/* Main Headline */}
+                    <h1 className="font-display font-extrabold text-[44px] md:text-[60px] lg:text-[72px] leading-[1.05] tracking-[-0.03em] max-w-[650px] mb-6 animate-fade-in-up-hero text-[#FFFFFF]" style={{ animationDelay: '200ms', textShadow: '0 0 40px rgba(0,0,0,1), 0 2px 8px rgba(0,0,0,0.9), 0 0 80px rgba(0,0,0,0.8)' }}>
+                      Your Biology.<br />
+                      <span className="bg-gradient-to-r from-[#A855F7] via-[#D6BCFA] to-[#00D4FF] bg-clip-text text-transparent" style={{ textShadow: 'none' }}>
+                        Decoded by AI.
+                      </span>
+                    </h1>
+
+                    {/* Sub Headline with AI Icon */}
+                    <div className="flex items-center gap-6 mb-6 animate-fade-in-up-hero" style={{ animationDelay: '300ms' }}>
+                      <div className="relative shrink-0 animate-robot-reveal">
+                        {/* Borderless premium floating 3D mascot with hello waving tilt animation */}
+                        <motion.div 
+                          animate={{ 
+                            y: [0, -5, 0],
+                            rotate: [0, -4, 4, -4, 4, 0]
+                          }}
+                          transition={{ 
+                            repeat: Infinity, 
+                            duration: 4, 
+                            ease: "easeInOut"
+                          }}
+                          whileHover={{ 
+                            scale: 1.15,
+                            rotate: [0, -10, 10, -10, 10, 0]
+                          }}
+                          className="relative w-20 h-20 flex items-center justify-center rounded-2xl overflow-hidden group cursor-pointer"
+                        >
+                          {/* Waving 3D Glossy Robot Character Image */}
+                          <img
+                            src="/cute_waving_robot.png"
+                            alt="Waving AI Coach Robot"
+                            className="w-full h-full object-cover rounded-2xl transition-transform duration-500 group-hover:scale-115 z-10"
+                            style={{
+                              filter: "saturate(1.08) contrast(1.04) brightness(1.08)",
+                            }}
+                          />
+                        </motion.div>
+                      </div>
+                      <h2 className="font-display font-extrabold text-[22px] sm:text-[28px] md:text-[34px] text-white tracking-tight leading-none">
+                        Meet Your AI Coach
+                      </h2>
+                    </div>
+
+                    {/* Description Text — Upgraded to Biology-First Copy with Premium Hierarchy */}
+                    <div className="font-body text-[16px] lg:text-[17px] text-[#AAB3C5] leading-[1.6] max-w-[480px] mb-8 animate-fade-in-up-hero" style={{ animationDelay: '400ms', textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
+                      <p className="mb-1 text-white font-semibold">India's First Biology-First AI Fitness System.</p>
+                      <p className="text-[#8B909E]">We calculate, adapt, and protect your body first — no templates, no shortcuts.</p>
+                    </div>
+
+                    {/* CTA Button */}
+                    <div className="w-full max-w-[400px] mb-8 animate-fade-in-up-hero" style={{ animationDelay: '500ms' }}>
+                      <button
+                        onClick={handleStartQuiz}
+                        className="group relative w-full h-[60px] lg:h-[64px] rounded-2xl bg-[linear-gradient(135deg,#A855F7_0%,#7C3AED_50%,#00D4FF_100%)] bg-[length:200%_auto] border border-white/20 hover:bg-[position:-100%_0] transition-all duration-500 ease-out active:scale-95 flex items-center justify-center gap-2.5 overflow-hidden animate-pulse-glow shadow-[0_0_30px_rgba(168,85,247,0.4)]"
+                      >
+                        <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                        <div className="absolute top-0 left-[-100%] w-[50%] h-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-20deg] animate-shimmer pointer-events-none" />
+                        <div className="w-[8px] h-[8px] rounded-full bg-white animate-blink-dot z-10 shrink-0" />
+                        <span className="font-display text-[18px] lg:text-[20px] font-bold text-white tracking-wide z-10 flex items-center gap-2">
+                          Start Free AI Analysis <ArrowRight size={22} className="text-white group-hover:translate-x-1 transition-transform" />
+                        </span>
+                      </button>
+                    </div>
+
+                    {/* Trust Line */}
+                    <div className="flex flex-wrap items-center gap-x-6 gap-y-3 mb-10 animate-fade-in-up-hero" style={{ animationDelay: '600ms' }}>
+                      {["No credit card", "Takes only 60 seconds", "Trusted by influencers & celebrities"].map((text, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <CheckCircle2 size={16} className="text-[#22C55E]" />
+                          <span className="font-body text-[13px] font-medium text-white">{text}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Social Proof */}
+                    <ModernTrustWidget />
+
+                    {/* Mobile Dedicated Photo Block — Only visible on mobile/tablet below the CTA, hidden on desktop */}
+                    <div className="w-full mt-10 flex lg:hidden items-center justify-center relative z-10 -mx-5 w-[calc(100%+2.5rem)]">
+                      <div className="relative flex items-center justify-center w-full h-[450px]">
+                        <div 
+                          className="relative w-full h-[450px] overflow-hidden border-y border-white/10 shadow-[0_20px_40px_rgba(0,0,0,0.75),0_0_35px_rgba(34,211,238,0.12)]"
+                          style={{ background: "#05050B" }}
+                        >
+                          {/* Glow overlay */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent z-20 pointer-events-none" />
+                          <div className="absolute inset-0 bg-gradient-to-tr from-[#00D4FF]/5 via-transparent to-[#A855F7]/5 z-20 pointer-events-none" />
+                          
+                          {/* Mobile screenshot image */}
+                          <img
+                            src="/hero-ai-mobile.png.png"
+                            alt="Sandy AI Coach Mobile Preview"
+                            className="w-full h-full object-cover object-center"
+                            style={{
+                              filter: "saturate(1.06) contrast(1.05) brightness(1.06)",
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              {/* ── SECTION 1: THE 3 PILLARS OF BIOLOGY-FIRST AI ── */}
+              <div className="relative w-full max-w-[1440px] mx-auto px-5 lg:px-[80px] py-16 lg:py-24 flex flex-col items-center">
+                {/* Background glow effects */}
+                <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-[350px] h-[350px] rounded-full bg-[#A855F7]/10 blur-[80px] pointer-events-none" />
+                <div className="absolute top-1/3 right-1/4 w-[300px] h-[300px] rounded-full bg-[#00D4FF]/5 blur-[70px] pointer-events-none" />
+
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ duration: 0.6 }}
+                  className="text-center max-w-[720px] mb-16 relative z-10"
+                >
+                  <span className="font-mono text-[10px] text-[#A855F7] font-bold tracking-[0.25em] uppercase px-4 py-1.5 rounded-full bg-[#A855F7]/10 border border-[#A855F7]/25 shadow-[0_0_15px_rgba(168,85,247,0.15)] inline-block mb-4">
+                    ELITE BIO-SCIENCE INTEGRATION
+                  </span>
+                  <h2 className="font-display font-extrabold text-[32px] md:text-[48px] text-white leading-tight tracking-tight mb-4">
+                    India's First{" "}
+                    <span className="bg-gradient-to-r from-[#A855F7] via-[#D6BCFA] to-[#00D4FF] bg-clip-text text-transparent">
+                      Biology-First AI Coach
+                    </span>
+                  </h2>
+                  <p className="font-body text-[#AAB3C5] text-[15px] md:text-[17px] leading-relaxed">
+                    Most AI tools are copy-paste prompt templates. Sandy's Deep-AI performs a clinical, hormonal, and physical scan before generating a single calorie or workout metric.
+                  </p>
+                </motion.div>
+
+                {/* 3-Card Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 w-full relative z-10">
+                  {/* Card 1 */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                    whileHover={{ y: -6, transition: { duration: 0.2 } }}
+                    className="relative group bg-[#0A0718]/40 border border-white/[0.06] hover:border-[#A855F7]/30 rounded-[28px] p-6 lg:p-8 backdrop-blur-md overflow-hidden transition-all duration-300"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#A855F7]/[0.05] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                    
+                    {/* Top Accent line */}
+                    <div className="absolute top-0 left-8 right-8 h-[2px] bg-gradient-to-r from-transparent via-[#A855F7] to-transparent shadow-[0_0_10px_#A855F7]" />
+
+                    <div className="w-14 h-14 rounded-2xl bg-[#A855F7]/10 border border-[#A855F7]/20 flex items-center justify-center text-3xl mb-6 shadow-[0_0_15px_rgba(168,85,247,0.1)] group-hover:scale-110 transition-transform">
+                      🧬
+                    </div>
+                    <h3 className="font-display font-bold text-[20px] text-white mb-3 tracking-tight">
+                      Clinical BMR & Macro Anatomy
+                    </h3>
+                    <p className="font-body text-[#8B909E] text-[14px] leading-[1.6]">
+                      Calculates your exact BMR and daily expenditure (TDEE) using the clinical Mifflin-St Jeor formula based on active metabolism — no generic static age-weight estimates.
+                    </p>
+                  </motion.div>
+
+                  {/* Card 2 */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                    whileHover={{ y: -6, transition: { duration: 0.2 } }}
+                    className="relative group bg-[#0A0718]/40 border border-white/[0.06] hover:border-[#00D4FF]/30 rounded-[28px] p-6 lg:p-8 backdrop-blur-md overflow-hidden transition-all duration-300"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#00D4FF]/[0.05] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                    
+                    {/* Top Accent line */}
+                    <div className="absolute top-0 left-8 right-8 h-[2px] bg-gradient-to-r from-transparent via-[#00D4FF] to-transparent shadow-[0_0_10px_#00D4FF]" />
+
+                    <div className="w-14 h-14 rounded-2xl bg-[#00D4FF]/10 border border-[#00D4FF]/20 flex items-center justify-center text-3xl mb-6 shadow-[0_0_15px_rgba(0,212,255,0.1)] group-hover:scale-110 transition-transform">
+                      💊
+                    </div>
+                    <h3 className="font-display font-bold text-[20px] text-white mb-3 tracking-tight">
+                      Hormonal & Joint Safety Filters
+                    </h3>
+                    <p className="font-body text-[#8B909E] text-[14px] leading-[1.6]">
+                      The only AI coach programmed to scan for PCOS/PCOD, thyroid levels, diabetic sensitivity, period regularity, and joint injuries to design plans that protect your body first.
+                    </p>
+                  </motion.div>
+
+                  {/* Card 3 */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                    whileHover={{ y: -6, transition: { duration: 0.2 } }}
+                    className="relative group bg-[#0A0718]/40 border border-white/[0.06] hover:border-[#e879f9]/30 rounded-[28px] p-6 lg:p-8 backdrop-blur-md overflow-hidden transition-all duration-300"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#e879f9]/[0.05] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                    
+                    {/* Top Accent line */}
+                    <div className="absolute top-0 left-8 right-8 h-[2px] bg-gradient-to-r from-transparent via-[#e879f9] to-transparent shadow-[0_0_10px_#e879f9]" />
+
+                    <div className="w-14 h-14 rounded-2xl bg-[#e879f9]/10 border border-[#e879f9]/20 flex items-center justify-center text-3xl mb-6 shadow-[0_0_15px_rgba(232,121,249,0.1)] group-hover:scale-110 transition-transform">
+                      ⚡
+                    </div>
+                    <h3 className="font-display font-bold text-[20px] text-white mb-3 tracking-tight">
+                      Real-Time Adaptive Intelligence
+                    </h3>
+                    <p className="font-body text-[#8B909E] text-[14px] leading-[1.6]">
+                      Not a static PDF. If you only have 3 days this week or changed your workout location, tell the AI in natural language and it instantly reforms your roadmap.
+                    </p>
+                  </motion.div>
+                </div>
+              </div>
+
+              {/* ── SECTION 2: SYMMETRICAL COMPARISON DASHBOARD ── */}
+              <div className="relative w-full max-w-[1440px] mx-auto px-5 lg:px-[80px] pb-24 lg:pb-36 flex flex-col items-center">
+                <div className="absolute bottom-1/4 right-1/4 w-[350px] h-[350px] rounded-full bg-[#A855F7]/5 blur-[90px] pointer-events-none" />
+
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6 }}
+                  className="text-center max-w-[720px] mb-16 relative z-10"
+                >
+                  <span className="font-mono text-[10px] text-[#00D4FF] font-bold tracking-[0.25em] uppercase px-4 py-1.5 rounded-full bg-[#00D4FF]/10 border border-[#00D4FF]/25 shadow-[0_0_15px_rgba(0,212,255,0.15)] inline-block mb-4">
+                    THE DEEP-SCIENCE VERDICT
+                  </span>
+                  <h2 className="font-display font-extrabold text-[32px] md:text-[48px] text-white tracking-tight leading-tight mb-4">
+                    Symmetrical{" "}
+                    <span className="bg-gradient-to-r from-[#00D4FF] via-[#A855F7] to-[#e879f9] bg-clip-text text-transparent">
+                      Comparison Dashboard
+                    </span>
+                  </h2>
+                  <p className="font-body text-[#AAB3C5] text-[15px] md:text-[17px] leading-relaxed">
+                    Compare the exact scientific parameters, BMR accuracy, adaptability, and medical awareness across coaching methods.
+                  </p>
+                </motion.div>
+
+                {/* Symmetrical Table Widget Wrapper */}
+                <motion.div
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.7 }}
+                  className="w-full relative z-10 overflow-x-auto rounded-[32px] border border-white/[0.07] bg-[#050409]/60 backdrop-blur-xl shadow-[0_30px_60px_rgba(0,0,0,0.7)]"
+                >
+                  {/* Neon frame lines */}
+                  <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[#A855F7]/30 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-[#00D4FF]/30 to-transparent" />
+
+                  <table className="w-full min-w-[800px] border-collapse text-left relative">
+                    <thead>
+                      <tr className="border-b border-white/[0.08] bg-[#090714]/60">
+                        <th className="p-6 lg:p-8 font-display text-[14px] font-bold text-white/50 tracking-wider uppercase w-[28%]">
+                          Feature Area
+                        </th>
+                        
+                        {/* Highlights the center AI Coach column */}
+                        <th className="p-6 lg:p-8 font-display text-[15px] font-black text-center relative w-[28%] bg-[#A855F7]/[0.06] border-x border-[#A855F7]/15">
+                          {/* Pulsing indicator tag */}
+                          <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-gradient-to-r from-[#A855F7] to-[#00D4FF] text-[9px] font-bold tracking-widest text-white uppercase shadow-[0_0_15px_#A855F7]">
+                            ⚡ RECOMMEND
+                          </div>
+                          <span className="bg-gradient-to-r from-[#C084FC] to-[#00D4FF] bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(168,85,247,0.3)]">
+                            🤖 Sandy's AI Coach
+                          </span>
+                        </th>
+                        
+                        <th className="p-6 lg:p-8 font-display text-[14px] font-bold text-center text-white/70 w-[22%]">
+                          💬 Generic ChatGPT/Gemini
+                        </th>
+                        <th className="p-6 lg:p-8 font-display text-[14px] font-bold text-center text-white/70 w-[22%]">
+                          🏋️ Traditional Trainers
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {COMPARISON_ROWS.map((row, idx) => (
+                        <tr 
+                          key={idx} 
+                          className="border-b border-white/[0.04] hover:bg-white/[0.015] transition-colors duration-200"
+                        >
+                          <td className="p-6 lg:p-8 font-display font-bold text-[14px] text-white tracking-tight">
+                            {row.feature}
+                          </td>
+                          
+                          {/* Center highlighted Sandy AI Coach column */}
+                          <td className="p-6 lg:p-8 text-center bg-[#A855F7]/[0.03] border-x border-[#A855F7]/10 relative">
+                            {/* Inner vertical glow stripe */}
+                            <div className="absolute inset-y-0 left-0 w-[1px] bg-gradient-to-b from-[#A855F7]/20 via-transparent to-[#A855F7]/20" />
+                            <div className="absolute inset-y-0 right-0 w-[1px] bg-gradient-to-b from-[#A855F7]/20 via-transparent to-[#A855F7]/20" />
+                            <StatusCell check={row.sandy.check} text={row.sandy.text} highlight={true} />
+                          </td>
+                          
+                          <td className="p-6 lg:p-8 text-center">
+                            <StatusCell check={row.generic.check} text={row.generic.text} />
+                          </td>
+                          
+                          <td className="p-6 lg:p-8 text-center">
+                            <StatusCell check={row.trainer.check} text={row.trainer.text} />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </motion.div>
               </div>
 
             </motion.div>

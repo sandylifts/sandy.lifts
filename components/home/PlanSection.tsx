@@ -29,7 +29,8 @@ function TiltCard({ type, onClick }: { type: "women" | "men", onClick: () => voi
 
   const title = isWomen ? "Let's Understand Your Body First" : "Men's Programme";
   const badgeText = isWomen ? "Coach Reviewed Application" : "Active Coaching Slots";
-  const subDesc = isWomen ? "Your body needs understanding — not punishment." : "";
+  const subDesc = isWomen ? "Your body needs understanding — not punishment." : "Your body needs progressive strength — not random exhaustion.";
+
   const desc = isWomen
     ? "Supportive fat loss coaching designed for women dealing with PCOS, bloating, cravings, hormonal imbalances & stubborn weight."
     : "Built for male physiology — muscle, fat loss, recomposition and strength building.";
@@ -66,7 +67,7 @@ function TiltCard({ type, onClick }: { type: "women" | "men", onClick: () => voi
       ref={ref}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+      style={{ rotateX, rotateY, transformStyle: "preserve-3d", height: "100%", display: "flex", flexDirection: "column" }}
       className="relative w-full max-w-[420px] mx-auto rounded-[24px]"
     >
       <div
@@ -75,8 +76,11 @@ function TiltCard({ type, onClick }: { type: "women" | "men", onClick: () => voi
           border: `1px solid ${border}`,
           boxShadow: `0 25px 50px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)`,
           transform: "translateZ(30px)",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
         }}
-        className="p-6 md:p-8 rounded-[24px] flex flex-col gap-5 transition-all duration-300 hover:border-white/30 backdrop-blur-sm"
+        className="p-6 md:p-8 rounded-[24px] gap-5 transition-all duration-300 hover:border-white/30 backdrop-blur-sm flex-grow"
       >
         <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full pointer-events-none" style={{ background: `radial-gradient(circle, rgba(${rgbColor},0.15) 0%, transparent 70%)` }} />
 
@@ -86,21 +90,26 @@ function TiltCard({ type, onClick }: { type: "women" | "men", onClick: () => voi
             <span className="text-[0.7rem] font-bold tracking-wider" style={{ color: `rgb(${badgeColor})` }}>{badgeText}</span>
           </div>
 
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-3xl">{isWomen ? '💖' : '💪'}</span>
-            <div>
+          <div className="flex items-start gap-3 mb-2">
+            <span className="text-3xl" style={{ marginTop: "2px" }}>{isWomen ? '💖' : '💪'}</span>
+            <div style={{ flexGrow: 1 }}>
               <p style={{ color: accent }} className="text-[0.7rem] font-bold tracking-[0.15em] uppercase m-0">{isWomen ? 'For Women' : 'For Men'}</p>
-              <h3 className="text-xl md:text-2xl font-extrabold text-white leading-tight m-0">{title}</h3>
+              <div style={{ minHeight: "58px", display: "flex", alignItems: "flex-start", marginTop: "4px" }}>
+                <h3 className="text-xl md:text-2xl font-extrabold text-white leading-tight m-0">{title}</h3>
+              </div>
             </div>
           </div>
 
-          <div className="hidden md:block">
-            {subDesc && <p style={{ color: "#F5CAC3" }} className="text-[0.83rem] font-semibold leading-relaxed mt-2 mb-1">{subDesc}</p>}
+          <div style={{ minHeight: "44px", display: "flex", alignItems: "flex-start", marginTop: "8px" }}>
+            {subDesc && <p style={{ color: isWomen ? "#F5CAC3" : "#C3FCFE" }} className="text-[0.83rem] font-semibold leading-relaxed m-0">{subDesc}</p>}
+          </div>
+
+          <div style={{ minHeight: "72px", display: "flex", alignItems: "flex-start", marginTop: "8px" }}>
             <p className="text-[#8B909E] text-[0.85rem] leading-relaxed m-0">{desc}</p>
           </div>
         </div>
 
-        <div style={{ transform: "translateZ(25px)" }} className="hidden md:flex flex-col gap-2.5">
+        <div style={{ transform: "translateZ(25px)" }} className="flex flex-col gap-2.5">
           {points.map(pt => (
             <div key={pt} className="flex items-center gap-3 text-[0.875rem] text-[#D8DBFC]">
               <Check color={rgbColor} /> {pt}
@@ -108,7 +117,7 @@ function TiltCard({ type, onClick }: { type: "women" | "men", onClick: () => voi
           ))}
         </div>
 
-        <div style={{ transform: "translateZ(40px)" }} className="mt-2 md:mt-2">
+        <div style={{ transform: "translateZ(40px)", marginTop: "auto" }} className="mt-auto">
           <button
             onClick={onClick}
             className="w-full py-3.5 md:py-4 rounded-xl font-bold text-[#07090D] flex items-center justify-center gap-2 transition-transform hover:scale-[1.02] cursor-pointer"
