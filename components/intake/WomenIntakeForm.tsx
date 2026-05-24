@@ -13,7 +13,7 @@ interface WomenForm {
   foodType: string; mealsPerDay: string; foodDislikes: string; junkHabit: string; lateNightEating: string;
   experience: string; currentActivity: string; timeAvailable: string; workoutPlace: string;
   mainGoal: string; focusArea: string[]; targetInMonth: string; whyTransform: string;
-  comments: string;
+  comments: string; referredBy: string; referrerName: string;
 }
 
 const INIT: WomenForm = {
@@ -23,7 +23,7 @@ const INIT: WomenForm = {
   foodType:"", mealsPerDay:"", foodDislikes:"", junkHabit:"", lateNightEating:"",
   experience:"", currentActivity:"", timeAvailable:"", workoutPlace:"",
   mainGoal:"", focusArea:[], targetInMonth:"", whyTransform:"",
-  comments:"",
+  comments:"", referredBy:"", referrerName:"",
 };
 
 const STEPS = [
@@ -99,11 +99,14 @@ function WTextarea({ value, placeholder, onChange }: {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export function WomenIntakeForm() {
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(0);
+  const [consentChecked, setConsentChecked] = useState(false);
   const [fd, setFd] = useState<WomenForm>(INIT);
   const [errs, setErrs] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analyzeProgress, setAnalyzeProgress] = useState(0);
   const [weightUnit, setWeightUnit] = useState<"kg"|"lbs">("kg");
   const [heightUnit, setHeightUnit] = useState<"cm"|"ftin">("cm");
   const [heightFt, setHeightFt] = useState("");
@@ -175,20 +178,38 @@ export function WomenIntakeForm() {
   const back = () => setStep(s => Math.max(s - 1, 1));
 
   const handleSubmit = () => {
+    if (!fd.referredBy) {
+      setErrs(p => ({ ...p, referredBy: "Please select who referred you" }));
+      return;
+    }
+    if ((fd.referredBy === "Friend / Client 👥" || fd.referredBy === "Other 🌟") && !fd.referrerName.trim()) {
+      setErrs(p => ({ ...p, referrerName: "Required" }));
+      return;
+    }
+
     setSubmitting(true);
+    setAnalyzing(true);
+    setAnalyzeProgress(0);
     
-    // Fire and forget API call so it doesn't block WhatsApp redirect if network/Supabase is slow
-    fetch("/api/intake", { 
-      method:"POST", 
-      headers:{"Content-Type":"application/json"}, 
-      body: JSON.stringify({ gender:"women", formData: fd }) 
+    // Fire and forget API call so it doesn't block loading/transition
+    fetch("/api/intake", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ gender:"women", formData: fd }),
     }).catch(() => {});
 
-    const msg = encodeURIComponent(`Hi Sandy! 🌸 I just filled my women's fitness assessment form on your website.\n\nName: ${fd.name}\nAge: ${fd.age} yrs\nGoal: ${fd.mainGoal}\nHealth: ${fd.healthConditions.join(", ")||"None"}\n\nPlease review my details and create my personalised plan 🙏\n\nI'll explore the website again to see the rest of your amazing tools! Thank you so much! ✨`);
-    window.open(`https://wa.me/918968244407?text=${msg}`, "_blank");
-    
-    setSubmitted(true);
-    setSubmitting(false);
+    // High fidelity AI scanning engine simulation over 2.5s
+    const interval = setInterval(() => {
+      setAnalyzeProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setAnalyzing(false);
+          setSubmitted(true);
+          setSubmitting(false);
+          return 100;
+        }
+        return prev + 4;
+      });
+    }, 100);
   };
 
   const handleWeightUnitChange = (unit: "kg"|"lbs") => {
@@ -528,125 +549,290 @@ export function WomenIntakeForm() {
 
       return (
         <div style={{ display:"flex", flexDirection:"column", gap:"1rem" }}>
-          <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:"14px", padding:"0.85rem", overflow:"hidden" }}>
-            <Section emoji="👤" title="Personal Profile">
-              <Row icon="🪪" label="Name" value={fd.name} />
-              <Row icon="🎂" label="Age" value={fd.age ? fd.age+" yrs" : ""} />
-              <Row icon="📏" label="Height / Weight" value={`${heightUnit==="cm" ? fd.height+" cm" : fd.height} / ${fd.weight} ${weightUnit}`} />
-              <Row icon="🪞" label="Body Type" value={fd.bodyType} />
-            </Section>
-            <Section emoji="🏥" title="Health">
-              <Row icon="💊" label="Conditions" value={fd.healthConditions.join(", ")||"None"} />
-              <Row icon="🌸" label="Periods" value={fd.periodsRegular} />
-              <Row icon="😴" label="Sleep" value={fd.sleepHours} />
-              <Row icon="💧" label="Water Intake" value={fd.waterIntake} />
-            </Section>
-            <Section emoji="🌙" title="Lifestyle & Diet">
-              <Row icon="💼" label="Job / Role" value={fd.jobType} />
-              <Row icon="🥗" label="Food Preference" value={fd.foodType} />
-              <Row icon="🍽️" label="Meals / Day" value={fd.mealsPerDay} />
-              <Row icon="🍟" label="Junk Habit" value={fd.junkHabit} />
-              <Row icon="🌙" label="Late Night Eating" value={fd.lateNightEating} />
-            </Section>
-            <Section emoji="💪" title="Fitness">
-              <Row icon="🏅" label="Experience" value={fd.experience} />
-              <Row icon="🏃‍♀️" label="Current Activity" value={fd.currentActivity} />
-              <Row icon="⏱️" label="Time Available" value={fd.timeAvailable} />
-              <Row icon="📍" label="Workout Place" value={fd.workoutPlace} />
-            </Section>
-            <Section emoji="🎯" title="Goals">
-              <Row icon="🔥" label="Main Goal" value={fd.mainGoal} />
-              <Row icon="📌" label="Focus Area" value={fd.focusArea.join(", ")} />
-              <Row icon="📅" label="1-Month Target" value={fd.targetInMonth} />
-              <Row icon="💬" label="Motivation" value={fd.whyTransform} />
-            </Section>
-          </div>
+          {!submitted ? (
+            <>
+              <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:"14px", padding:"0.85rem", overflow:"hidden" }}>
+                <Section emoji="👤" title="Personal Profile">
+                  <Row icon="🪪" label="Name" value={fd.name} />
+                  <Row icon="🎂" label="Age" value={fd.age ? fd.age+" yrs" : ""} />
+                  <Row icon="📏" label="Height / Weight" value={`${heightUnit==="cm" ? fd.height+" cm" : fd.height} / ${fd.weight} ${weightUnit}`} />
+                  <Row icon="🪞" label="Body Type" value={fd.bodyType} />
+                </Section>
+                <Section emoji="🏥" title="Health">
+                  <Row icon="💊" label="Conditions" value={fd.healthConditions.join(", ")||"None"} />
+                  <Row icon="🌸" label="Periods" value={fd.periodsRegular} />
+                  <Row icon="😴" label="Sleep" value={fd.sleepHours} />
+                  <Row icon="💧" label="Water Intake" value={fd.waterIntake} />
+                </Section>
+                <Section emoji="🌙" title="Lifestyle & Diet">
+                  <Row icon="💼" label="Job / Role" value={fd.jobType} />
+                  <Row icon="🥗" label="Food Preference" value={fd.foodType} />
+                  <Row icon="🍽️" label="Meals / Day" value={fd.mealsPerDay} />
+                  <Row icon="🍟" label="Junk Habit" value={fd.junkHabit} />
+                  <Row icon="🌙" label="Late Night Eating" value={fd.lateNightEating} />
+                </Section>
+                <Section emoji="💪" title="Fitness">
+                  <Row icon="🏅" label="Experience" value={fd.experience} />
+                  <Row icon="🏃‍♀️" label="Current Activity" value={fd.currentActivity} />
+                  <Row icon="⏱️" label="Time Available" value={fd.timeAvailable} />
+                  <Row icon="📍" label="Workout Place" value={fd.workoutPlace} />
+                </Section>
+                <Section emoji="🎯" title="Goals">
+                  <Row icon="🔥" label="Main Goal" value={fd.mainGoal} />
+                  <Row icon="📌" label="Focus Area" value={fd.focusArea.join(", ")} />
+                  <Row icon="📅" label="1-Month Target" value={fd.targetInMonth} />
+                  <Row icon="💬" label="Motivation" value={fd.whyTransform} />
+                </Section>
+              </div>
 
-          <div>
-            <WLabel t="Anything else you want Sandy to know?" />
-            <WTextarea value={fd.comments} placeholder="Any extra details, questions, or special requests..." onChange={v => set("comments", v)} />
-          </div>
+              <div>
+                <WLabel t="Anything else you want Sandy to know?" />
+                <WTextarea value={fd.comments} placeholder="Any extra details, questions, or special requests..." onChange={v => set("comments", v)} />
+              </div>
 
-          {submitted ? (
-            <div style={{ animation:"fade-in 0.5s ease-out" }}>
-              {/* Success Banner */}
-              <div style={{ background:`linear-gradient(135deg, rgba(229,152,155,0.12), rgba(229,152,155,0.04))`, border:`1px solid rgba(229,152,155,0.25)`, borderRadius:"20px", padding:"1.75rem", textAlign:"center", marginBottom:"1.25rem", position:"relative", overflow:"hidden" }}>
-                <div style={{ position:"absolute", top:"-50px", left:"50%", transform:"translateX(-50%)", width:"150px", height:"150px", borderRadius:"50%", background:"radial-gradient(circle, rgba(229,152,155,0.2) 0%, transparent 70%)", pointerEvents:"none" }} />
-                
-                <div style={{ fontSize:"2.5rem", marginBottom:"0.5rem", position:"relative", zIndex:1 }}>🎉</div>
-                <p style={{ background:`linear-gradient(135deg,${P},#F5CAC3)`, WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", fontWeight:900, fontSize:"1.3rem", marginBottom:"0.4rem", position:"relative", zIndex:1 }}>
-                  You&apos;re officially in the 1%!
-                </p>
-                <p style={{ color:"#8B909E", fontSize:"0.9rem", marginBottom:"1.25rem", lineHeight:1.5, position:"relative", zIndex:1 }}>
-                  Your form is with me! 🚀 WhatsApp opened — please hit <strong>Send</strong> to notify me.
-                </p>
-
-                {/* Note from Sandy */}
-                <div style={{ background:"rgba(229,152,155,0.06)", border:"1px dashed rgba(229,152,155,0.3)", borderRadius:"12px", padding:"0.85rem", marginBottom:"1.25rem", textAlign:"left", position:"relative", zIndex:1 }}>
-                  <p style={{ margin:0, fontSize:"0.8rem", color:P, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.05em", marginBottom:"0.25rem" }}>💬 Note from Sandy:</p>
-                  <p style={{ margin:0, fontSize:"0.85rem", color:"#D8DBFC", fontStyle:"italic", lineHeight:1.45 }}>
-                    &ldquo;Thank you so much! Please explore my other tools (like the AI Coach, Macro Calculator, and quizzes) while I review your assessment—there is so much waiting for you!&rdquo;
-                  </p>
+              <div style={{ marginTop: "1rem", borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "1.5rem" }}>
+                <WLabel t="Who referred you to Sandy.Lifts? *" />
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(115px, 1fr))", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                  {[
+                    { key: "Instagram 📱", label: "Instagram 📱" },
+                    { key: "YouTube 🎥", label: "YouTube 🎥" },
+                    { key: "Friend / Client 👥", label: "Friend / Client 👥" },
+                    { key: "Other 🌟", label: "Other 🌟" }
+                  ].map(item => (
+                    <WBtn key={item.key} selected={fd.referredBy === item.key} label={item.label} onClick={() => set("referredBy", item.key)} />
+                  ))}
                 </div>
+                <WErrMsg err={errs.referredBy} />
 
-                {/* What Happens Next - Compact */}
-                <div style={{ background:"rgba(0,0,0,0.3)", borderRadius:"14px", padding:"1rem", textAlign:"left", border:"1px solid rgba(255,255,255,0.05)", position:"relative", zIndex:1 }}>
-                  <p style={{ fontSize:"0.68rem", fontWeight:800, color:PL, textTransform:"uppercase", letterSpacing:"0.15em", marginBottom:"0.6rem" }}>Next Steps</p>
-                  <div style={{ display:"flex", flexDirection:"column", gap:"0.5rem" }}>
-                    <p style={{ fontSize:"0.82rem", color:"#D8DBFC", margin:0, display:"flex", alignItems:"center", gap:"0.5rem" }}><span style={{fontSize:"1rem"}}>1️⃣</span> Sandy reviews your profile</p>
-                    <p style={{ fontSize:"0.82rem", color:"#D8DBFC", margin:0, display:"flex", alignItems:"center", gap:"0.5rem" }}><span style={{fontSize:"1rem"}}>2️⃣</span> A personalised plan is created</p>
-                    <p style={{ fontSize:"0.82rem", color:"#D8DBFC", margin:0, display:"flex", alignItems:"center", gap:"0.5rem" }}><span style={{fontSize:"1rem"}}>3️⃣</span> Sandy reaches out in 24 hours</p>
-                  </div>
-                </div>
+                {/* Conditional Slide-out text field */}
+                {(fd.referredBy === "Friend / Client 👥" || fd.referredBy === "Other 🌟") && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    transition={{ duration: 0.25 }}
+                    style={{ marginTop: "0.75rem" }}
+                  >
+                    <WLabel t="What is their name? / Where did you find us? *" />
+                    <WTextInput
+                      value={fd.referrerName}
+                      error={errs.referrerName}
+                      placeholder="Enter details here..."
+                      onChange={v => set("referrerName", v)}
+                    />
+                  </motion.div>
+                )}
               </div>
 
-              {/* AI Coach Mini Banner */}
-              <div style={{ marginBottom:"1.25rem" }}>
-                <p style={{ fontSize:"0.75rem", fontWeight:700, color:"#8B909E", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:"0.6rem", textAlign:"center" }}>While You Wait</p>
-                <Link href="/ai-coach" style={{ textDecoration:"none" }}>
-                  <div style={{ background:"linear-gradient(145deg, rgba(167,139,250,0.1), rgba(167,139,250,0.02))", border:"1px solid rgba(167,139,250,0.25)", borderRadius:"16px", padding:"1rem", display:"flex", alignItems:"center", justifyContent:"space-between", gap:"1rem", transition:"all 0.2s", cursor:"pointer", boxShadow:"0 4px 20px rgba(167,139,250,0.1)" }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:"0.75rem" }}>
-                      <div style={{ width:40, height:40, borderRadius:"12px", background:"rgba(167,139,250,0.2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"1.2rem", border:"1px solid rgba(167,139,250,0.4)" }}>🤖</div>
-                      <div>
-                        <p style={{ margin:0, color:"#fff", fontWeight:800, fontSize:"0.9rem" }}>Ask Sandy&apos;s AI Coach</p>
-                        <p style={{ margin:0, color:"#A78BFA", fontSize:"0.75rem", fontWeight:500 }}>Get instant answers now ⚡</p>
-                      </div>
-                    </div>
-                    <div style={{ color:"#A78BFA" }}>→</div>
-                  </div>
-                </Link>
+              <div style={{ marginTop: "1.5rem" }}>
+                <button type="button" onClick={handleSubmit} disabled={submitting}
+                  style={{ width:"100%", padding:"1rem", borderRadius:"14px", fontWeight:700, fontSize:"1rem",
+                    cursor:submitting ? "wait" : "pointer", border:"none",
+                    background:`linear-gradient(135deg, ${P}, #F5CAC3)`,
+                    color:"#07090D", boxShadow:`0 0 30px rgba(229,152,155,0.4)`, opacity:submitting ? 0.7 : 1,
+                    display:"flex", alignItems:"center", justifyContent:"center", gap:"0.5rem" }}>
+                  Submit Fitness Profile ⚡
+                </button>
               </div>
-
-              {/* Tools Grid */}
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0.75rem", marginBottom:"1.5rem" }}>
-                <Link href="/tools/macro-calculator" style={{ textDecoration:"none", background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:"14px", padding:"0.85rem", display:"flex", flexDirection:"column", alignItems:"center", gap:"0.4rem", textAlign:"center", transition:"background 0.2s" }}>
-                  <span style={{ fontSize:"1.25rem" }}>🧮</span>
-                  <span style={{ color:"#C4C4CC", fontSize:"0.75rem", fontWeight:600 }}>Macro Calc</span>
-                </Link>
-                <Link href="/tools/body-type-quiz" style={{ textDecoration:"none", background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:"14px", padding:"0.85rem", display:"flex", flexDirection:"column", alignItems:"center", gap:"0.4rem", textAlign:"center", transition:"background 0.2s" }}>
-                  <span style={{ fontSize:"1.25rem" }}>🧬</span>
-                  <span style={{ color:"#C4C4CC", fontSize:"0.75rem", fontWeight:600 }}>Body Type Quiz</span>
-                </Link>
-              </div>
-
-              <Link href="/" style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:"0.4rem", background:`rgba(255,255,255,0.05)`, color:"#8B909E", fontWeight:600, fontSize:"0.85rem", padding:"0.85rem", borderRadius:"12px", textDecoration:"none", border:"1px solid rgba(255,255,255,0.1)" }}>
-                ← Return to Home
-              </Link>
-              <style>{`@keyframes fade-in { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }`}</style>
-            </div>
+            </>
           ) : (
-            <button type="button" onClick={handleSubmit} disabled={submitting}
-              style={{ width:"100%", padding:"1rem", borderRadius:"14px", fontWeight:700, fontSize:"1rem",
-                cursor:submitting ? "wait" : "pointer", border:"none",
-                background:`linear-gradient(135deg, ${P}, #E8D0CE)`,
-                color:"#fff", boxShadow:"0 0 24px rgba(184,147,154,0.3)", opacity:submitting ? 0.7 : 1,
-                display:"flex", alignItems:"center", justifyContent:"center", gap:"0.5rem" }}>
-              {submitting ? (
-                <><span style={{ display:"inline-block", width:"16px", height:"16px", border:"2px solid rgba(255,255,255,0.3)", borderTopColor:"#fff", borderRadius:"50%", animation:"spin 0.7s linear infinite" }} />Submitting...</>
-              ) : "Submit & Notify Sandy 🩷"}
-            </button>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, type: "spring", stiffness: 100, damping: 18 }}
+              style={{ display:"flex", flexDirection:"column", gap:"1.5rem", position: "relative" }}
+            >
+              {/* Confetti Particle Sparkles */}
+              <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 0 }}>
+                <style>{`
+                  @keyframes floating-confetti {
+                    0% { transform: translateY(20px) rotate(0deg); opacity: 0; }
+                    20% { opacity: 1; }
+                    80% { opacity: 0.8; }
+                    100% { transform: translateY(-120px) rotate(360deg); opacity: 0; }
+                  }
+                `}</style>
+                {/* Float particles */}
+                {["✨", "🎉", "🌸", "💪", "✨", "🌸"].map((char, i) => (
+                  <div key={i} style={{
+                    position: "absolute",
+                    bottom: "20%",
+                    left: `${15 + i * 14}%`,
+                    fontSize: `${1.2 + (i%3)*0.3}rem`,
+                    animation: `floating-confetti ${3.2 + (i%2)*1.2}s ease-in-out infinite ${i * 0.4}s`,
+                    opacity: 0,
+                    pointerEvents: "none"
+                  }}>{char}</div>
+                ))}
+              </div>
+
+              {/* Success Title */}
+              <motion.div
+                initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.6, type: "spring", bounce: 0.35 }}
+                style={{ textAlign:"center", marginBottom:"0.5rem", position: "relative", zIndex: 10 }}
+              >
+                <div style={{ fontSize:"3.5rem", marginBottom:"0.5rem", animation: "fpulse 2s infinite" }}>🎉</div>
+                <h2 style={{ background:`linear-gradient(135deg, ${P}, #F5CAC3)`, WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", fontWeight:900, fontSize:"1.8rem", marginBottom:"0.5rem", textTransform:"uppercase", letterSpacing:"0.05em" }}>
+                  Assessment Confirmed!
+                </h2>
+                <p style={{ color:"#AAB3C5", fontSize:"0.95rem", margin:0 }}>
+                  You just made the decision that separates the top 1% from everyone else.
+                </p>
+              </motion.div>
+
+              {/* DUAL ACTION CARDS ROW */}
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(280px, 1fr))", gap:"1.25rem", width:"100%", position: "relative", zIndex: 10 }}>
+                
+                {/* CARD 1: WHATSAPP FAST-TRACK */}
+                <motion.div
+                  initial={{ opacity: 0, y: 30, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ delay: 0.12, duration: 0.6, type: "spring", stiffness: 120, damping: 15 }}
+                  whileHover={{ y: -6, scale: 1.015, border: "1px solid rgba(34,197,94,0.4)", boxShadow: "0 20px 40px rgba(34,197,94,0.12)", transition: { duration: 0.2 } }}
+                  style={{
+                    background: "linear-gradient(145deg, rgba(34,197,94,0.08) 0%, rgba(34,197,94,0.02) 100%)",
+                    border: "1px solid rgba(34,197,94,0.25)",
+                    borderRadius: "24px",
+                    padding: "1.75rem",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    boxShadow: "0 15px 35px rgba(0,0,0,0.6), 0 0 30px rgba(34,197,94,0.05)",
+                    position: "relative",
+                    overflow: "hidden",
+                    cursor: "pointer"
+                  }}
+                >
+                  {/* Neon light behind card */}
+                  <div style={{ position:"absolute", top:"-40px", right:"-40px", width:"120px", height:"120px", borderRadius:"50%", background:"radial-gradient(circle, rgba(34,197,94,0.15) 0%, transparent 70%)", pointerEvents:"none" }} />
+                  
+                  <div>
+                    {/* Live Online Badge */}
+                    <div style={{ display:"inline-flex", alignItems:"center", gap:"6px", background:"rgba(34,197,94,0.15)", border:"1px solid rgba(34,197,94,0.4)", borderRadius:"999px", padding:"0.25rem 0.75rem", fontSize:"0.65rem", fontWeight:800, color:"#4ADE80", marginBottom:"1.25rem", letterSpacing:"0.05em", textTransform:"uppercase" }}>
+                      <span className="relative flex h-2.5 w-2.5 shrink-0 mr-1.5" style={{ display: "inline-flex", position: "relative" }}>
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#22C55E] opacity-75" style={{ position: "absolute", borderRadius: "50%", width: "100%", height: "100%" }}></span>
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#22C55E] shadow-[0_0_8px_#22C55E]" style={{ position: "relative", borderRadius: "50%", width: "10px", height: "10px" }}></span>
+                      </span>
+                      🟢 Coach Sandy: Active Now
+                    </div>
+
+                    <h3 style={{ fontSize:"1.2rem", fontWeight:900, color:"#fff", margin:"0 0 0.5rem" }}>Priority Plan Fast-Track</h3>
+                    <p style={{ fontSize:"0.82rem", color:"#9A9EC4", lineHeight:1.5, margin:"0 0 1.5rem" }}>
+                      Send your assessment alert to Sandy directly via WhatsApp. Bypasses the standard queue and initiates **instant 15-minute priority review**!
+                    </p>
+                  </div>
+
+                  <div>
+                    {/* WhatsApp Action Button */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        let refStr = "";
+                        if (fd.referredBy && fd.referredBy !== "No one (Found it myself)") {
+                          refStr = `\nReferred By: ${fd.referredBy}` + (fd.referrerName ? ` (${fd.referrerName})` : "");
+                        }
+                        const msg = encodeURIComponent(`Hi Sandy! 💪 I just filled my women's fitness assessment form on your website.\n\nName: ${fd.name}\nAge: ${fd.age} yrs\nGoal: ${fd.mainGoal}\nHealth: ${fd.healthConditions.join(", ")||"None"}${refStr}\n\nPlease review my details and create my personalised plan 🙏\n\nI'll explore the website again to see the rest of your amazing tools! Thank you so much! ✨`);
+                        window.open(`https://wa.me/918968244407?text=${msg}`, "_blank");
+                      }}
+                      style={{
+                        width: "100%",
+                        padding: "1rem",
+                        borderRadius: "14px",
+                        fontWeight: 800,
+                        fontSize: "0.95rem",
+                        cursor: "pointer",
+                        border: "none",
+                        background: "linear-gradient(135deg, #22C55E 0%, #10B981 100%)",
+                        color: "#fff",
+                        boxShadow: "0 0 24px rgba(34,197,94,0.35)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "0.5rem",
+                        transition: "transform 0.2s"
+                      }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.458L0 24zm6.059-3.486c1.656.983 3.284 1.503 4.966 1.504 5.539 0 10.05-4.47 10.054-9.974.002-2.668-1.036-5.176-2.923-7.066C16.329 3.088 13.829 2.05 11.166 2.05 5.627 2.05 1.118 6.52 1.114 12.023c-.001 1.76.476 3.479 1.383 5.048L1.442 21.6l4.674-1.086z"/></svg>
+                      Notify Sandy on WhatsApp
+                    </button>
+                    <p style={{ textAlign:"center", fontSize:"0.72rem", color:"#4ADE80", marginTop:"0.6rem", fontWeight:600 }}>
+                      ⚡ Instant Response Enabled
+                    </p>
+                  </div>
+                </motion.div>
+
+                {/* CARD 2: SUPPLEMENT PREVIEW & EXTRA TOOLS */}
+                <motion.div
+                  initial={{ opacity: 0, y: 30, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ delay: 0.24, duration: 0.6, type: "spring", stiffness: 120, damping: 15 }}
+                  whileHover={{ y: -6, scale: 1.015, border: `1px solid rgba(229,152,155,0.18)`, boxShadow: "0 20px 40px rgba(229,152,155,0.06)", transition: { duration: 0.2 } }}
+                  style={{
+                    background: "linear-gradient(145deg, rgba(229,152,155,0.06) 0%, rgba(229,152,155,0.01) 100%)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    borderRadius: "24px",
+                    padding: "1.75rem",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    boxShadow: "0 15px 35px rgba(0,0,0,0.5)",
+                    cursor: "pointer"
+                  }}
+                >
+                  <div>
+                    <h3 style={{ fontSize:"1.2rem", fontWeight:900, color:"#fff", margin:"0 0 0.5rem" }}>Explore Personalized Preview</h3>
+                    <p style={{ fontSize:"0.82rem", color:"#9A9EC4", lineHeight:1.5, margin:"0 0 1.25rem" }}>
+                      While Sandy reviews your form, don&apos;t wait! Unlock supplementary recommendation widgets matched directly to your primary goal:
+                    </p>
+                  </div>
+
+                  <div style={{ display:"flex", flexDirection:"column", gap:"0.65rem", width:"100%" }}>
+                    
+                    {/* Link 1: SUPPLEMENT PITCH PORTAL */}
+                    <Link href="/admin" style={{ textDecoration:"none" }}>
+                      <div style={{ background:"rgba(255,255,255,0.025)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:"14px", padding:"0.65rem 0.85rem", display:"flex", alignItems:"center", gap:"0.75rem", transition:"all 0.18s", cursor:"pointer" }}>
+                        <span style={{ fontSize:"1.1rem" }}>💊</span>
+                        <div style={{ display:"flex", flexDirection:"column" }}>
+                          <span style={{ color:"#fff", fontWeight:700, fontSize:"0.8rem" }}>Supplement Recommendations</span>
+                          <span style={{ color:"#8B909E", fontSize:"0.68rem" }}>MuscleBlaze & ON Media Previews</span>
+                        </div>
+                      </div>
+                    </Link>
+
+                    {/* Link 2: AI COACH */}
+                    <Link href="/ai-coach" style={{ textDecoration:"none" }}>
+                      <div style={{ background:"rgba(167,139,250,0.05)", border:"1px solid rgba(167,139,250,0.18)", borderRadius:"14px", padding:"0.65rem 0.85rem", display:"flex", alignItems:"center", gap:"0.75rem", transition:"all 0.18s", cursor:"pointer" }}>
+                        <span style={{ fontSize:"1.1rem" }}>🤖</span>
+                        <div style={{ display:"flex", flexDirection:"column" }}>
+                          <span style={{ color:"#fff", fontWeight:700, fontSize:"0.8rem" }}>Ask Sandy&apos;s AI Coach</span>
+                          <span style={{ color:"#C084FC", fontSize:"0.68rem" }}>Pre-loaded with your goals for instant chat</span>
+                        </div>
+                      </div>
+                    </Link>
+
+                    {/* Link 3: BODY TYPE QUIZ */}
+                    <Link href="/tools/body-type-quiz" style={{ textDecoration:"none" }}>
+                      <div style={{ background:"rgba(255,255,255,0.025)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:"14px", padding:"0.65rem 0.85rem", display:"flex", alignItems:"center", gap:"0.75rem", transition:"all 0.18s", cursor:"pointer" }}>
+                        <span style={{ fontSize:"1.1rem" }}>🧬</span>
+                        <div style={{ display:"flex", flexDirection:"column" }}>
+                          <span style={{ color:"#fff", fontWeight:700, fontSize:"0.8rem" }}>Scientific Body Type Quiz</span>
+                          <span style={{ color:"#8B909E", fontSize:"0.68rem" }}>Explore DNA matching categories</span>
+                        </div>
+                      </div>
+                    </Link>
+
+                  </div>
+                </motion.div>
+
+              </div>
+
+              {/* Return Home Link */}
+              <Link href="/" style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:"0.4rem", background:`rgba(255,255,255,0.03)`, color:"#8B909E", fontWeight:600, fontSize:"0.85rem", padding:"0.85rem", borderRadius:"12px", textDecoration:"none", border:"1px solid rgba(255,255,255,0.07)", width:"100%", boxSizing:"border-box", textAlign:"center", position: "relative", zIndex: 10 }}>
+                ← Return to Home Dashboard
+              </Link>
+            </motion.div>
           )}
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       );
     }
@@ -743,7 +929,39 @@ export function WomenIntakeForm() {
         ))}
       </div>
 
-      <div style={{ maxWidth:"580px", margin:"0 auto", padding:"0 1rem", position:"relative" }}>
+      {step === 0 ? (
+        <div style={{ maxWidth:"540px", margin:"0 auto", padding:"2rem 1.25rem", position:"relative", zIndex:10 }}>
+          <Link href="/start" style={{ display:"inline-flex", alignItems:"center", gap:"0.4rem", color:"#6B7280", fontSize:"0.85rem", marginBottom:"1.5rem", textDecoration:"none" }}>
+            ← Back
+          </Link>
+          <motion.div initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} style={{ background:"rgba(229,152,155,0.04)", border:"1px solid rgba(229,152,155,0.2)", borderRadius:"24px", padding:"2rem", textAlign:"center" }}>
+             <div style={{ display:"flex", justifyContent:"center", marginBottom:"1rem" }}>
+               <div style={{ width:60, height:60, borderRadius:"50%", background:"rgba(229,152,155,0.1)", border:"1px solid rgba(229,152,155,0.3)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"1.75rem" }}>
+                 📋
+               </div>
+             </div>
+             <h2 style={{ fontSize:"1.5rem", fontWeight:800, color:"#F5F7FA", marginBottom:"1rem" }}>Medical & Privacy Consent</h2>
+             <p style={{ color:"#8B909E", fontSize:"0.9rem", lineHeight:1.6, textAlign:"left", marginBottom:"1.5rem" }}>
+               Before we begin, please note that this assessment is not medical advice. By proceeding, you agree that:
+               <br/><br/>
+               • You will consult a physician if you have serious health conditions.<br/>
+               • You consent to Sandy.Lifts processing your data to create your fitness plan.<br/>
+               • Your information remains 100% private and secure.
+             </p>
+             <div style={{ display:"flex", gap:"1rem", alignItems:"flex-start", textAlign:"left", background:"rgba(255,255,255,0.02)", padding:"1.25rem", borderRadius:"12px", border:"1px solid rgba(255,255,255,0.08)", marginBottom:"1.5rem" }}>
+                <input type="checkbox" id="w-consent-check" checked={consentChecked} onChange={(e) => setConsentChecked(e.target.checked)} style={{ marginTop:"4px", accentColor:"#E5989B", width:"18px", height:"18px" }} />
+                <label htmlFor="w-consent-check" style={{ color:"#D8DBFC", fontSize:"0.85rem", lineHeight:1.5, cursor:"pointer" }}>
+                  I have read and agree to the Medical Disclaimer & Privacy Terms to proceed with my assessment.
+                </label>
+             </div>
+             <button onClick={() => { if(consentChecked) setStep(1); }} disabled={!consentChecked}
+               style={{ width:"100%", padding:"1rem", borderRadius:"14px", fontWeight:700, fontSize:"1rem", cursor:consentChecked?"pointer":"not-allowed", border:"none", background:consentChecked ? "linear-gradient(135deg, #E5989B, #F5CAC3)" : "rgba(255,255,255,0.05)", color:consentChecked?"#07090D":"#6B7280", transition:"all 0.2s" }}>
+               Start Assessment →
+             </button>
+          </motion.div>
+        </div>
+      ) : (
+      <div style={{ maxWidth: submitted ? "840px" : "580px", margin:"0 auto", padding:"0 1rem", position:"relative", zIndex:10, transition: "max-width 0.5s ease-in-out" }}>
         <Link href="/start" style={{ display:"inline-flex", alignItems:"center", gap:"0.4rem", color:"#6B7280", fontSize:"0.85rem", marginBottom:"1.5rem", textDecoration:"none" }}>
           ← Back
         </Link>
@@ -797,9 +1015,136 @@ export function WomenIntakeForm() {
         </div>
 
         <motion.div key={step} initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.28, ease:"easeOut" }}
-          style={{ background:"rgba(255,255,255,0.025)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:"20px", padding:"1.75rem" }}>
+          style={{ background:"rgba(255,255,255,0.025)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:"20px", padding:"1.75rem", position: "relative", overflow: "hidden" }}>
           <p style={{ color:"#8B909E", fontSize:"0.82rem", marginBottom:"1.25rem" }}>{STEPS[step-1].sub}</p>
           {renderStep()}
+
+          {/* Glassmorphic Overlay Progress Loader */}
+          {analyzing && (
+            <div style={{
+              position: "absolute",
+              inset: 0,
+              background: "rgba(7, 9, 13, 0.94)",
+              backdropFilter: "blur(14px)",
+              WebkitBackdropFilter: "blur(14px)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "2rem",
+              zIndex: 50,
+              borderRadius: "20px"
+            }}>
+              {/* Sweeping Laser Line */}
+              <div style={{
+                position: "absolute",
+                left: 0,
+                right: 0,
+                height: "3px",
+                background: `linear-gradient(90deg, transparent, ${P}, transparent)`,
+                boxShadow: `0 0 12px ${P}`,
+                animation: "scan-laser 2.2s ease-in-out infinite",
+                pointerEvents: "none"
+              }} />
+
+              {/* Loader Animation */}
+              <div style={{ width: "100%", maxWidth: "320px", textAlign: "center", position: "relative", zIndex: 10 }}>
+                
+                {/* 3D Radar Dual-Circle Indicator */}
+                <div style={{ display: "flex", justifyContent: "center", marginBottom: "1.5rem" }}>
+                  <div style={{
+                    width: "84px",
+                    height: "84px",
+                    borderRadius: "50%",
+                    border: `2px dashed rgba(229, 152, 155, 0.4)`,
+                    borderTopColor: P,
+                    borderBottomColor: P,
+                    position: "relative",
+                    animation: "spin 1.2s linear infinite",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center"
+                  }}>
+                    {/* Counter-rotating Inner dashed circle */}
+                    <div style={{
+                      position: "absolute",
+                      width: "58px",
+                      height: "58px",
+                      borderRadius: "50%",
+                      border: `2px dotted rgba(245, 202, 195, 0.4)`,
+                      borderLeftColor: "#F5CAC3",
+                      borderRightColor: "#F5CAC3",
+                      animation: "spin-reverse 1.6s linear infinite"
+                    }} />
+                    
+                    {/* Inner glowing core */}
+                    <div style={{
+                      width: "42px",
+                      height: "42px",
+                      borderRadius: "50%",
+                      background: `radial-gradient(circle, rgba(229,152,155,0.35) 0%, transparent 70%)`,
+                      border: `1px solid rgba(229,152,155,0.3)`,
+                      position: "absolute"
+                    }} />
+
+                    {/* Cute flexing muscle emoji active pump */}
+                    <span style={{ 
+                      fontSize: "1.85rem", 
+                      position: "absolute", 
+                      animation: "muscle-pump-rose 0.8s ease-in-out infinite alternate" 
+                    }}>💪</span>
+                  </div>
+                </div>
+
+                {/* Progress Percentage */}
+                <div style={{ fontSize: "2.2rem", fontWeight: 900, color: "#fff", marginBottom: "0.25rem", letterSpacing: "-0.02em" }}>
+                  {analyzeProgress}%
+                </div>
+                
+                <div style={{ fontSize: "0.68rem", textTransform: "uppercase", letterSpacing: "0.15em", color: PL, fontWeight: 800, marginBottom: "1.25rem" }}>
+                  System Scan In Progress
+                </div>
+
+                {/* Progress Bar Container */}
+                <div style={{ height: "6px", background: "rgba(255,255,255,0.06)", borderRadius: "999px", overflow: "hidden", marginBottom: "1.25rem", border: "1px solid rgba(255,255,255,0.04)" }}>
+                  <div style={{
+                    width: `${analyzeProgress}%`,
+                    height: "100%",
+                    background: `linear-gradient(90deg, ${P}, #F5CAC3)`,
+                    boxShadow: `0 0 10px ${P}`,
+                    borderRadius: "999px",
+                    transition: "width 0.1s linear"
+                  }} />
+                </div>
+
+                {/* Dynamic Ticker Text */}
+                <div style={{ fontSize: "0.82rem", color: "#AAB3C5", minHeight: "36px", transition: "all 0.2s", padding: "0 0.5rem" }}>
+                  {analyzeProgress < 20 && "🧬 Analyzing physical parameters & skeletal composition..."}
+                  {analyzeProgress >= 20 && analyzeProgress < 40 && "⚖️ Computing custom Basal Metabolic Rate (BMR)..."}
+                  {analyzeProgress >= 40 && analyzeProgress < 60 && "🥑 Formulating calorie and macronutrient split ratios..."}
+                  {analyzeProgress >= 60 && analyzeProgress < 80 && "🏋️ Matching exercise roadmaps to weekly routine..."}
+                  {analyzeProgress >= 80 && "📡 Transmitting assessment securely to Sandy's Coaching Desk..."}
+                </div>
+              </div>
+
+              <style>{`
+                @keyframes scan-laser {
+                  0% { top: 0%; opacity: 0; }
+                  10% { opacity: 1; }
+                  90% { opacity: 1; }
+                  100% { top: 100%; opacity: 0; }
+                }
+                @keyframes spin-reverse {
+                  0% { transform: rotate(360deg); }
+                  100% { transform: rotate(0deg); }
+                }
+                @keyframes muscle-pump-rose {
+                  0% { transform: scale(0.85); filter: drop-shadow(0 0 4px rgba(229,152,155,0.4)); }
+                  100% { transform: scale(1.15) rotate(-6deg); filter: drop-shadow(0 0 14px rgba(229,152,155,0.9)); }
+                }
+              `}</style>
+            </div>
+          )}
         </motion.div>
 
         {step < 7 && (
@@ -835,6 +1180,7 @@ export function WomenIntakeForm() {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }

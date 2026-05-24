@@ -15,6 +15,7 @@ interface Tool {
   desc: string;
   slug?: string;
   live: boolean;
+  viral?: boolean;
   studyPanel?: StudyPanel;
 }
 
@@ -142,6 +143,7 @@ const TOOLS: Tool[] = [
     desc: "ICMR-NIN 2024 · Indian food sources",
     slug: "/tools/fiber-calculator",
     live: true,
+    viral: true,
     studyPanel: {
       why: "American fiber guidelines don't apply to Indian diets. We use ICMR-NIN 2024 — India's own dietary guidelines — scaled to your calorie intake, with Indian food composition data (IFCT 2017).",
       studies: [
@@ -264,6 +266,33 @@ function ToolCard({ tool }: { tool: Tool }) {
       <div className="absolute inset-0 pointer-events-none opacity-0 hover:opacity-100 transition-opacity duration-500"
         style={{ background: "radial-gradient(circle at 50% 0%, rgba(195,252,254,0.04) 0%, transparent 60%)" }} />
 
+      {/* 🔴 VIRAL Badge */}
+      {tool.viral && (
+        <div
+          className="absolute top-[-1px] right-4 z-20 select-none"
+          style={{ pointerEvents: "none" }}
+        >
+          <div
+            style={{
+              background: "linear-gradient(135deg, #ff0040 0%, #cc0030 100%)",
+              color: "#fff",
+              fontSize: "9px",
+              fontWeight: 900,
+              letterSpacing: "0.22em",
+              textTransform: "uppercase",
+              padding: "5px 12px 4px",
+              borderRadius: "0 0 10px 10px",
+              boxShadow: "0 4px 0 #7a0020, 0 6px 24px rgba(255,0,64,0.55), inset 0 1px 0 rgba(255,255,255,0.3)",
+              animation: "viral-pulse 2s infinite ease-in-out",
+              border: "1px solid rgba(255,80,100,0.4)",
+              borderTop: "none",
+            }}
+          >
+            🔥 VIRAL
+          </div>
+        </div>
+      )}
+
       <div className="p-6 flex flex-col flex-1">
         {/* Top Row */}
         <div className="flex items-center justify-between mb-5">
@@ -338,6 +367,16 @@ export default function ToolsPage() {
         @keyframes floatCard {
           0%, 100% { transform: translateY(0px); }
           50% { transform: translateY(-8px); }
+        }
+        @keyframes viral-pulse {
+          0%, 100% {
+            box-shadow: 0 4px 0 #7a0020, 0 6px 24px rgba(255,0,64,0.55), inset 0 1px 0 rgba(255,255,255,0.3);
+            transform: translateY(0px);
+          }
+          50% {
+            box-shadow: 0 4px 0 #7a0020, 0 12px 40px rgba(255,0,64,0.9), inset 0 1px 0 rgba(255,255,255,0.5);
+            transform: translateY(-1px);
+          }
         }
         @keyframes magPulse {
           0%, 100% { transform: rotate(-35deg) scale(1); opacity: 0.7; }

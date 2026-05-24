@@ -1,176 +1,112 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 
-// IMPORTANT: For the exact "Breakout" effect shown in your reference, 
-// this photo MUST have a transparent background (.png).
-const PHOTO_SRC = "/hero-selfie.png"; 
-
 export default function HeroVisual() {
+  const [mounted, setMounted] = useState(false);
+  const [mouse, setMouse] = useState({ x: 0, y: 0 });
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    
+    // Check device dimensions
+    const checkDevice = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    checkDevice();
+    window.addEventListener("resize", checkDevice);
+
+    // Desktop Mouse Parallax Tracker
+    const handleMouseMove = (e: MouseEvent) => {
+      if (window.innerWidth < 1024) return;
+      const x = (e.clientX - window.innerWidth / 2) / (window.innerWidth / 2);
+      const y = (e.clientY - window.innerHeight / 2) / (window.innerHeight / 2);
+      setMouse({ x, y });
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+
+    return () => {
+      window.removeEventListener("resize", checkDevice);
+      window.removeEventListener("mousemove", handleMouseMove);
+    };
+  }, []);
+
+  // 3D Angle Calculations for high-end floating effect on desktop
+  const rotateX = !mounted || isMobile ? 0 : -mouse.y * 8;
+  const rotateY = !mounted || isMobile ? 0 : mouse.x * 8;
+
+  // Premium vertical frame styles: fully edge-to-edge on mobile
+  const canvasStyle = {
+    width: "100%",
+    height: isMobile ? "450px" : "480px",
+    borderRadius: isMobile ? "0px" : "28px",
+    borderLeft: isMobile ? "none" : "1px solid rgba(255,255,255,0.08)",
+    borderRight: isMobile ? "none" : "1px solid rgba(255,255,255,0.08)",
+    borderTop: "1px solid rgba(255,255,255,0.08)",
+    borderBottom: "1px solid rgba(255,255,255,0.08)",
+    boxShadow: isMobile ? "none" : "0 20px 40px rgba(0,0,0,0.75), 0 0 35px rgba(34,211,238,0.12), 0 0 65px rgba(168,85,247,0.08)",
+    overflow: "hidden" as const,
+    zIndex: 20,
+    background: "#07090D",
+    position: "relative" as const
+  };
+
   return (
-    <div 
-      className="relative hidden lg:flex items-center justify-end w-full max-w-[650px] h-[650px] select-none -translate-y-16"
-      aria-hidden="true"
-    >
-      <style>{`
-        @keyframes floatSlow {
-          0%, 100% { transform: translateY(0px); }
-          50%      { transform: translateY(-8px); }
-        }
-      `}</style>
-
-      {/* THE BACKGROUND CIRCLES (Portal) */}
+    <div className="flex flex-col items-center justify-center w-full select-none">
+      
+      {/* THE CANVAS PORTAL */}
       <div 
-        className="absolute left-[5%] top-[50%] -translate-y-1/2 w-[420px] h-[420px] rounded-full z-0"
-        style={{
-          border: "1px solid rgba(168,85,247,0.3)",
-          background: "radial-gradient(circle at center, rgba(168,85,247,0.12) 0%, transparent 65%)",
-          boxShadow: "0 0 60px rgba(168,85,247,0.15), inset 0 0 60px rgba(168,85,247,0.05)"
-        }}
-      />
-      <div 
-        className="absolute left-[12%] top-[50%] -translate-y-1/2 w-[340px] h-[340px] rounded-full z-0 pointer-events-none"
-        style={{
-          border: "1px dashed rgba(34,211,238,0.2)",
-          transform: "rotate(15deg)"
-        }}
-      />
-
-      {/* THE PERSON (Perfectly cropped out of the circle) */}
-      <div className="absolute left-[-15%] bottom-[5%] w-[520px] h-[105%] z-20 pointer-events-none drop-shadow-[0_0_40px_rgba(0,0,0,0.6)]">
-        <Image
-          src={PHOTO_SRC}
-          alt="Sandy"
-          fill
-          priority
-          sizes="(max-width: 1024px) 0px, 550px"
+        className="relative flex items-center justify-center w-full lg:max-w-[420px] h-[450px] lg:h-[500px]"
+        style={{ perspective: "1200px" }}
+        aria-hidden="true"
+      >
+        {/* THE PERSPECTIVE CONTAINER */}
+        <div
+          className="relative w-full h-full flex items-center justify-center"
           style={{
-            objectFit: "contain",
-            objectPosition: "bottom center",
-            filter: "saturate(1.1) contrast(1.05)"
-          }}
-        />
-      </div>
-
-      {/* THE CARDS (Right Side Stack) */}
-      <div className="absolute right-[0%] top-[2%] flex flex-col gap-6 z-30 w-[240px]">
-        
-        {/* CARD 1 — CALORIES GOAL */}
-        <div 
-          className="flex flex-col p-4 w-full animate-[floatSlow_5s_ease-in-out_infinite]"
-          style={{
-            background: "rgba(8,10,20,0.85)",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-            border: "1px solid rgba(34,211,238,0.25)",
-            boxShadow: "0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(34,211,238,0.05)",
-            borderRadius: "16px"
+            transformStyle: "preserve-3d",
+            transform: `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
+            transition: isMobile ? "none" : "transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
           }}
         >
-          <span className="text-[10px] font-bold tracking-wider text-[#22D3EE] mb-2">CALORIES GOAL</span>
-          <div className="flex items-baseline gap-1 mb-3">
-            <span className="text-[28px] font-bold text-[#22D3EE] leading-none" style={{ fontFamily: "Syne, sans-serif" }}>2,150</span>
-            <span className="text-[11px] text-gray-500 font-medium">kcal</span>
-          </div>
-          <div className="w-full h-[3px] bg-[rgba(255,255,255,0.1)] rounded-full overflow-hidden mb-2">
-            <div className="h-full w-[75%] bg-[#22D3EE] rounded-full shadow-[0_0_8px_#22D3EE]" />
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#22D3EE]" />
-            <span className="text-[9px] text-gray-400">75% of daily goal</span>
-          </div>
-        </div>
+          {/* THE NEON PORTAL BACKLIGHT (Only desktop/tablet) */}
+          {!isMobile && (
+            <div 
+              className="absolute w-[380px] h-[380px] rounded-full z-0 pointer-events-none"
+              style={{
+                transform: "translateZ(-60px)",
+                border: "1px dashed rgba(34,211,238,0.1)",
+                background: "radial-gradient(circle, rgba(34,211,238,0.12) 0%, rgba(168,85,247,0.05) 45%, transparent 70%)",
+                boxShadow: "0 0 80px rgba(34,211,238,0.12), 0 0 120px rgba(168,85,247,0.05)",
+                opacity: 0.8
+              }}
+            />
+          )}
 
-        {/* CARD 2 — AI COACH */}
-        <div 
-          className="flex flex-col p-4 w-full animate-[floatSlow_6s_ease-in-out_infinite_0.5s]"
-          style={{
-            background: "rgba(8,10,20,0.85)",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-            border: "1px solid rgba(168,85,247,0.35)",
-            boxShadow: "0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(168,85,247,0.05)",
-            borderRadius: "16px"
-          }}
-        >
-          <span className="text-[10px] font-bold tracking-wider text-[#C084FC] mb-3">AI COACH</span>
-          <div className="flex items-center gap-3 mb-3">
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-[#A855F7] to-[#7C3AED] shadow-[0_0_12px_rgba(168,85,247,0.5)]">
-              <span className="text-white font-bold text-sm" style={{ fontFamily: "Syne, sans-serif" }}>S</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-white text-sm font-semibold">Sandy</span>
-              <span className="text-[#C084FC] text-[10px]">Adaptive Engine</span>
-            </div>
-          </div>
-          <p className="text-[11px] text-gray-400 leading-relaxed mb-3">
-            Deload week ready.<br/>Recovery at 62% ↑
-          </p>
-          <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#A855F7] animate-pulse" />
-            <span className="text-[10px] text-[#C084FC] font-medium" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Active now</span>
-          </div>
-        </div>
-
-        {/* CARD 3 — MACROS */}
-        <div 
-          className="flex flex-col p-4 w-full animate-[floatSlow_5.5s_ease-in-out_infinite_1s]"
-          style={{
-            background: "rgba(8,10,20,0.85)",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-            border: "1px solid rgba(34,211,238,0.2)",
-            boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
-            borderRadius: "16px"
-          }}
-        >
-          <span className="text-[10px] font-bold tracking-wider text-[#C084FC] mb-3">MACROS</span>
-          
-          <div className="flex items-center justify-between gap-4">
+          {/* THE DYNAMIC CARD CONTAINER */}
+          <div style={canvasStyle}>
+            {/* Premium Foil reflection overlays */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent z-20 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-tr from-[#22D3EE]/5 via-transparent to-[#A855F7]/5 z-20 pointer-events-none" />
             
-            {/* Donut Chart */}
-            <div className="relative w-16 h-16 shrink-0 flex items-center justify-center">
-              <div 
-                className="absolute inset-0 rounded-full"
-                style={{
-                  background: "conic-gradient(#A855F7 0% 40%, #7C3AED 40% 60%, #22D3EE 60% 100%)",
-                  maskImage: "radial-gradient(circle, transparent 55%, black 56%)",
-                  WebkitMaskImage: "radial-gradient(circle, transparent 55%, black 56%)"
-                }}
-              />
-              <div className="w-10 h-10 rounded-full shadow-[inset_0_0_10px_rgba(34,211,238,0.2)] flex items-center justify-center">
-                <span className="text-white font-bold text-[11px]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>40%</span>
-              </div>
-            </div>
-
-            {/* Legend */}
-            <div className="flex flex-col gap-2 w-full">
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#22D3EE]" />
-                  <span className="text-[10px] text-gray-400">Protein</span>
-                </div>
-                <span className="text-[10px] text-white font-semibold">40%</span>
-              </div>
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#7C3AED]" />
-                  <span className="text-[10px] text-gray-400">Carbs</span>
-                </div>
-                <span className="text-[10px] text-white font-semibold">40%</span>
-              </div>
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#A855F7]" />
-                  <span className="text-[10px] text-gray-400">Fat</span>
-                </div>
-                <span className="text-[10px] text-white font-semibold">20%</span>
-              </div>
-            </div>
-
+            <Image
+              src="/mobile-hero-pic.png"
+              alt="Sandy Fitness Transformation"
+              fill
+              priority
+              quality={100}
+              sizes="100vw"
+              style={{
+                objectFit: "cover",
+                objectPosition: "50% 25%",
+                filter: "saturate(1.06) contrast(1.05) brightness(1.06)"
+              }}
+            />
           </div>
         </div>
-
       </div>
     </div>
   );

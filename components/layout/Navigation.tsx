@@ -16,6 +16,7 @@ const NAV_LINKS = [
 
 export function Navigation() {
   const pathname                    = usePathname();
+  if (pathname?.startsWith("/admin")) return null;
   const [scrolled,   setScrolled]   = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
@@ -209,39 +210,45 @@ export function Navigation() {
                     {label}
                     {badge === "NEW" && (
                       <span style={{
+                        position: "absolute",
+                        top: "-5px",
+                        right: "-2px",
                         display: "inline-flex",
                         alignItems: "center",
-                        gap: "3px",
-                        padding: "2px 7px",
-                        borderRadius: "999px",
-                        fontSize: "0.52rem",
-                        fontWeight: 700,
-                        letterSpacing: "0.12em",
-                        textTransform: "uppercase",
-                        border: "1px solid rgba(102,230,255,0.4)",
-                        boxShadow: "0 0 10px rgba(77,163,255,0.3)",
-                        background: "rgba(77,163,255,0.08)",
+                        gap: "1.5px",
+                        padding: "1px 3.5px",
+                        borderRadius: "4px",
+                        fontSize: "0.42rem",
+                        fontWeight: 900,
+                        letterSpacing: "0.04em",
+                        lineHeight: 1,
+                        background: "rgba(77,163,255,0.14)",
+                        border: "1px solid rgba(102,230,255,0.45)",
+                        boxShadow: "0 0 8px rgba(77,163,255,0.22)",
                       }}>
-                        <span style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#66E6FF", display: "inline-block", flexShrink: 0, boxShadow: "0 0 4px rgba(102,230,255,0.8)" }} />
-                        <span className="sl-new-text">NEW</span>
+                        <span style={{ width: "3px", height: "3px", borderRadius: "50%", background: "#66E6FF", display: "inline-block", flexShrink: 0, boxShadow: "0 0 4px rgba(102,230,255,0.8)" }} />
+                        <span className="sl-new-text" style={{ fontSize: "0.42rem", fontWeight: 900 }}>NEW</span>
                       </span>
                     )}
                     {badge === "PROTECT" && (
                       <span className="sl-protect-badge" style={{
+                        position: "absolute",
+                        top: "-5px",
+                        right: "-2px",
                         display: "inline-flex",
                         alignItems: "center",
-                        gap: "3px",
-                        padding: "2px 8px",
-                        borderRadius: "999px",
-                        fontSize: "0.52rem",
-                        fontWeight: 700,
-                        letterSpacing: "0.12em",
-                        textTransform: "uppercase",
+                        gap: "1.5px",
+                        padding: "1px 3.5px",
+                        borderRadius: "4px",
+                        fontSize: "0.42rem",
+                        fontWeight: 900,
+                        letterSpacing: "0.04em",
+                        lineHeight: 1,
                         border: "1px solid rgba(245,158,11,0.55)",
-                        background: "linear-gradient(135deg, rgba(245,158,11,0.18) 0%, rgba(252,211,77,0.08) 100%)",
+                        background: "linear-gradient(135deg, rgba(245,158,11,0.22) 0%, rgba(252,211,77,0.1) 100%)",
                       }}>
-                        <span style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#F59E0B", display: "inline-block", flexShrink: 0, boxShadow: "0 0 6px rgba(245,158,11,1), 0 0 10px rgba(245,158,11,0.6)" }} />
-                        <span className="sl-protect-text">PROTECT</span>
+                        <span style={{ width: "3px", height: "3px", borderRadius: "50%", background: "#F59E0B", display: "inline-block", flexShrink: 0, boxShadow: "0 0 6px rgba(245,158,11,1)" }} />
+                        <span className="sl-protect-text" style={{ fontSize: "0.42rem", fontWeight: 900 }}>PROTECT</span>
                       </span>
                     )}
                   </Link>
@@ -572,14 +579,47 @@ export function Navigation() {
                           <span aria-hidden="true" style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#4DA3FF", boxShadow: "0 0 8px rgba(77,163,255,0.9)", flexShrink: 0 }} />
                         )}
                         {badge === "NEW" && (
-                          <span style={{ display: "inline-flex", alignItems: "center", gap: "3px", padding: "2px 8px", borderRadius: "999px", fontSize: "0.52rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase" as const, background: "rgba(167,139,250,0.12)", color: "#A78BFA", border: "1px solid rgba(167,139,250,0.32)", flexShrink: 0 }}>
-                            <span style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#A78BFA", display: "inline-block" }} />
+                          <span style={{
+                            position: "absolute",
+                            top: "14px",
+                            right: "14px",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "2px",
+                            padding: "1px 4.5px",
+                            borderRadius: "4px",
+                            fontSize: "0.45rem",
+                            fontWeight: 800,
+                            letterSpacing: "0.06em",
+                            textTransform: "uppercase" as const,
+                            background: "rgba(167,139,250,0.12)",
+                            color: "#A78BFA",
+                            border: "1px solid rgba(167,139,250,0.32)",
+                            flexShrink: 0
+                          }}>
+                            <span style={{ width: "3.5px", height: "3.5px", borderRadius: "50%", background: "#A78BFA", display: "inline-block" }} />
                             NEW
                           </span>
                         )}
                         {badge === "PROTECT" && (
-                          <span className="sl-protect-badge" style={{ display: "inline-flex", alignItems: "center", gap: "3px", padding: "2px 8px", borderRadius: "999px", fontSize: "0.52rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase" as const, background: "linear-gradient(135deg, rgba(245,158,11,0.18) 0%, rgba(252,211,77,0.08) 100%)", border: "1px solid rgba(245,158,11,0.55)", flexShrink: 0 }}>
-                            <span style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#F59E0B", display: "inline-block", boxShadow: "0 0 6px rgba(245,158,11,1)" }} />
+                          <span className="sl-protect-badge" style={{
+                            position: "absolute",
+                            top: "14px",
+                            right: "14px",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "2px",
+                            padding: "1px 4.5px",
+                            borderRadius: "4px",
+                            fontSize: "0.45rem",
+                            fontWeight: 800,
+                            letterSpacing: "0.06em",
+                            textTransform: "uppercase" as const,
+                            background: "linear-gradient(135deg, rgba(245,158,11,0.18) 0%, rgba(252,211,77,0.08) 100%)",
+                            border: "1px solid rgba(245,158,11,0.55)",
+                            flexShrink: 0
+                          }}>
+                            <span style={{ width: "3.5px", height: "3.5px", borderRadius: "50%", background: "#F59E0B", display: "inline-block", boxShadow: "0 0 6px rgba(245,158,11,1)" }} />
                             <span className="sl-protect-text">PROTECT</span>
                           </span>
                         )}

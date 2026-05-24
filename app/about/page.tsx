@@ -10,8 +10,9 @@ import { useEffect, useRef, useState } from "react";
 
 // Premium dynamic imports from the assets folder mapping exact names.
 import founderAboutImg from "../../assets/sandy founder.png";
-import sidImg from "../../assets/sid.jpeg";
+import sidImg from "../../assets/sayed gulam hussain.jpeg";
 import himanshuImg from "../../assets/himashu kumar.jpeg";
+import simmiImg from "../../assets/SIMMI-KUMARI.png";
 
 /* ─────────────────────────────────────────────
    Scroll-reveal hook
@@ -439,7 +440,8 @@ export default function AboutPage() {
       description:
         "Simi Kumari supports Sandy.Lifts as Marketing Business Manager. Her role focuses on client relations, communication flow, business coordination, and maintaining a strong bridge between the platform and the people it serves. She contributes to the relationship-building side of the brand with professionalism and clarity.",
       highlights: ["Client Relationship Mgmt", "Communication Coordination", "Business Support", "UX Support", "Relationship Building"],
-      initials: "SK",
+      image: simmiImg.src,
+      imagePosition: "center 10%",
       accentColor: "123, 111, 255",
       delay: 300,
     },

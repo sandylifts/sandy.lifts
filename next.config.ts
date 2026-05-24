@@ -4,6 +4,14 @@ const nextConfig: NextConfig = {
   compress: true,
   poweredByHeader: false,
 
+  // Speed up compilation by caching dev pages and keeping them in memory efficiently
+  onDemandEntries: {
+    // period (in ms) where the server will keep pages in the buffer
+    maxInactiveAge: 25 * 1000,
+    // number of pages that should be kept simultaneously without being disposed
+    pagesBufferLength: 2,
+  },
+
   images: {
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
